@@ -141,7 +141,7 @@ func (a *App) apiLs(w http.ResponseWriter, r *http.Request) {
 	}
 	out := []Entry{}
 	for _, de := range des {
-		if !visible(de.Name()) {
+		if !visible(de.Name()) || (full == a.root && de.IsDir() && a.isInbox(de.Name())) {
 			continue
 		}
 		info, err := os.Stat(filepath.Join(full, de.Name()))
@@ -488,6 +488,9 @@ func (a *App) getZip(w http.ResponseWriter, r *http.Request) {
 					return filepath.SkipDir
 				}
 				return nil
+			}
+			if info.IsDir() && filepath.Dir(p) == a.root && a.isInbox(info.Name()) {
+				return filepath.SkipDir
 			}
 			rel, _ := filepath.Rel(base, p)
 			if rel == "." {

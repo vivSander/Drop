@@ -625,11 +625,11 @@ func (a *App) peerRouter() http.Handler {
 	m.HandleFunc("PUT /peer/send/{path...}", a.peerReceive)
 	m.HandleFunc("DELETE /peer/send/{path...}", a.peerRemove)
 	m.HandleFunc("POST /peer/forget", a.peerAuth(a.peerForget))
-	m.HandleFunc("GET /peer/ls", a.peerAuth(a.apiLs))
-	m.HandleFunc("GET /peer/f/{path...}", a.peerAuth(a.getFile))
-	m.HandleFunc("HEAD /peer/f/{path...}", a.peerAuth(a.getFile))
-	m.HandleFunc("GET /peer/thumb/{path...}", a.peerAuth(a.getThumb))
-	m.HandleFunc("GET /peer/zip", a.peerAuth(a.getZip))
+	m.HandleFunc("GET /peer/ls", a.peerAuth(a.noInbox(a.apiLs)))
+	m.HandleFunc("GET /peer/f/{path...}", a.peerAuth(a.noInbox(a.getFile)))
+	m.HandleFunc("HEAD /peer/f/{path...}", a.peerAuth(a.noInbox(a.getFile)))
+	m.HandleFunc("GET /peer/thumb/{path...}", a.peerAuth(a.noInbox(a.getThumb)))
+	m.HandleFunc("GET /peer/zip", a.peerAuth(a.noInbox(a.getZip)))
 	return m
 }
 

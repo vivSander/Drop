@@ -1,6 +1,7 @@
 package main
 
 import (
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
@@ -86,5 +87,33 @@ func (a *App) purgeLoop() {
 		for _, n := range wipe {
 			a.wipeInbox(n)
 		}
+	}
+}
+
+// isInbox reports whether a top-level folder name is the folder of a connected device
+// (what that device sent). Those are never shown to other devices.
+func (a *App) isInbox(name string) bool {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	for _, n := range a.deviceNames() {
+		if cleanDisplay(n) == name {
+			return true
+		}
+	}
+	return false
+}
+
+// noInbox stops other devices from reading inbox folders through the peer API.
+func (a *App) noInbox(h http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		paths := append([]string{r.PathValue("path"), r.URL.Query().Get("p")}, r.URL.Query()["p"]...)
+		for _, p := range paths {
+			p = strings.TrimPrefix(filepath.ToSlash(p), "/")
+			if first, _, _ := strings.Cut(p, "/"); first != "" && a.isInbox(first) {
+				apiErr(w, 404, "Not found")
+				return
+			}
+		}
+		h(w, r)
 	}
 }
