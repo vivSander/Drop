@@ -13,13 +13,14 @@ button,input,textarea{font:inherit;color:inherit}
 .app{display:grid;grid-template-columns:248px minmax(0,1fr);grid-template-rows:auto 1fr;min-height:100dvh}
 .top{grid-column:1/-1;position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:10px;height:54px;padding:0 18px;background:var(--acc);color:#000;padding-top:env(safe-area-inset-top)}
 .top .grow{flex:1;align-self:stretch}
-.wc{display:flex;align-self:stretch;margin-right:-18px}.wc[hidden]{display:none}
+.wc{display:flex;align-self:stretch}.wc[hidden]{display:none}
 .wc button{width:48px;border:0;background:transparent;color:#000;display:grid;place-items:center;cursor:default;padding:0}
 .wc button svg{width:10px;height:10px;stroke-width:1}.wc button:hover{background:rgba(0,0,0,.14)}.wc button.x:hover{background:#E81123;color:#fff}
-body.native .top{user-select:none;-webkit-user-select:none;background:var(--bg);color:#fff;height:36px;padding:0 18px}
+body.native .top{user-select:none;-webkit-user-select:none;position:fixed;left:0;right:0;top:0;background:transparent;color:#fff;height:36px;padding:0}
+body.native .app{grid-template-rows:none}body.native .main{padding-top:48px}
 body.native .top>svg,body.native .top>b{display:none}
 body.native .wc button{color:#fff;height:36px}body.native .wc button:hover{background:rgba(255,255,255,.12)}body.native .wc button.x:hover{background:#E81123}
-body.native .side{top:36px;height:calc(100dvh - 36px)}
+body.native .side{top:0;height:100dvh}
 html.native-win,html.native-win body{background:var(--bg)}
 .rz{position:fixed;z-index:50;display:none}body.native .rz{display:block}
 .rz[data-e=n]{top:0;left:8px;right:8px;height:5px;cursor:ns-resize}.rz[data-e=s]{bottom:0;left:8px;right:8px;height:5px;cursor:ns-resize}
