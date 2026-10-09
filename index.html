@@ -12,6 +12,17 @@ button,input,textarea{font:inherit;color:inherit}
 .ic{display:inline-flex;flex:none}.ic svg{display:block}
 .app{display:grid;grid-template-columns:248px minmax(0,1fr);grid-template-rows:auto 1fr;min-height:100dvh}
 .top{grid-column:1/-1;position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:10px;height:54px;padding:0 18px;background:var(--acc);color:#000;padding-top:env(safe-area-inset-top)}
+.top .grow{flex:1;align-self:stretch}
+.wc{display:flex;align-self:stretch;margin-right:-18px}.wc[hidden]{display:none}
+.wc button{width:48px;border:0;background:transparent;color:#000;display:grid;place-items:center;cursor:default;padding:0}
+.wc button svg{width:10px;height:10px;stroke-width:1}.wc button:hover{background:rgba(0,0,0,.14)}.wc button.x:hover{background:#E81123;color:#fff}
+body.native .top{user-select:none;-webkit-user-select:none}
+.rz{position:fixed;z-index:50;display:none}body.native .rz{display:block}
+.rz[data-e=n]{top:0;left:8px;right:8px;height:5px;cursor:ns-resize}.rz[data-e=s]{bottom:0;left:8px;right:8px;height:5px;cursor:ns-resize}
+.rz[data-e=e]{right:0;top:8px;bottom:8px;width:5px;cursor:ew-resize}.rz[data-e=w]{left:0;top:8px;bottom:8px;width:5px;cursor:ew-resize}
+.rz[data-e=ne]{top:0;right:0;width:8px;height:8px;cursor:nesw-resize}.rz[data-e=sw]{bottom:0;left:0;width:8px;height:8px;cursor:nesw-resize}
+.rz[data-e=nw]{top:0;left:0;width:8px;height:8px;cursor:nwse-resize}.rz[data-e=se]{bottom:0;right:0;width:8px;height:8px;cursor:nwse-resize}
+body.native::after{content:"";position:fixed;inset:0;border:1px solid var(--acc);pointer-events:none;z-index:60}
 .top svg{width:26px;height:26px;flex:none}.top b{font-size:20px;font-weight:800;letter-spacing:-.04em}
 .side{position:sticky;top:54px;height:calc(100dvh - 54px);overflow:hidden;display:flex;flex-direction:column;background:var(--panel);border-right:1px solid var(--line);padding:22px 10px;z-index:3}
 
@@ -180,7 +191,8 @@ body:has(.selbar:not([hidden])) .sendfab{bottom:90px}
 <div id="off" hidden>Can't reach your computer. Check that Drop is still running.</div>
 <div class="veil" id="veil"><div class="veil-in"><span>Drop into</span><b id="veilname">Drop</b></div></div>
 <div class="app">
-  <div class="top"><svg viewBox="0 0 24 24" fill="#000" aria-hidden="true"><path d="M9.5 2h5v8.2h3.7L12 17 5.8 10.2h3.7z"/><rect x="4" y="19.5" width="16" height="2.5" rx=".6"/></svg><b>Drop</b></div>
+  <div class="top"><svg viewBox="0 0 24 24" fill="#000" aria-hidden="true"><path d="M9.5 2h5v8.2h3.7L12 17 5.8 10.2h3.7z"/><rect x="4" y="19.5" width="16" height="2.5" rx=".6"/></svg><b>Drop</b><span class="grow"></span><div class="wc" id="wc" hidden><button id="wmin" aria-label="Minimise" title="Minimise"><svg viewBox="0 0 10 10"><path d="M0 5.5h10" stroke="currentColor" fill="none"/></svg></button><button id="wmax" aria-label="Maximise" title="Maximise"><svg viewBox="0 0 10 10"><rect x=".5" y=".5" width="9" height="9" stroke="currentColor" fill="none"/></svg></button><button id="wx" class="x" aria-label="Close" title="Close"><svg viewBox="0 0 10 10"><path d="M0 0l10 10M10 0L0 10" stroke="currentColor" fill="none"/></svg></button></div></div>
+  <div class="rz" data-e="n"></div><div class="rz" data-e="s"></div><div class="rz" data-e="e"></div><div class="rz" data-e="w"></div><div class="rz" data-e="ne"></div><div class="rz" data-e="nw"></div><div class="rz" data-e="se"></div><div class="rz" data-e="sw"></div>
   <aside class="side"><nav id="tree" aria-label="Folders"></nav><div class="devs" id="devs"></div></aside>
   <main class="main" id="main">
     <header class="head local"><h1 id="crumbs"></h1><div class="tools" id="tools"></div></header>
@@ -786,6 +798,39 @@ function renderRemote(){
 setInterval(()=>{if(R&&!document.hidden&&!dragDepth)rload()},2500);
 
 /* ---------- keep-alive: lets Drop end itself when this page is closed ---------- */
+if(typeof window.dropNative==='function'){
+ document.body.classList.add('native');document.getElementById('wc').hidden=false;
+ let maxed=false;const wmax=document.getElementById('wmax');
+ const paint=()=>{wmax.title=maxed?'Restore':'Maximise';wmax.firstElementChild.innerHTML=maxed?'<path d="M2.5 2.5V.5h7v7h-2M.5 2.5h7v7h-7z" stroke="currentColor" fill="none"/>':'<rect x=".5" y=".5" width="9" height="9" stroke="currentColor" fill="none"/>'};
+ const act=a=>dropWin(a).then(m=>{maxed=!!m;paint()}).catch(()=>{});
+ document.getElementById('wmin').onclick=()=>act('min');wmax.onclick=()=>act('max');document.getElementById('wx').onclick=()=>act('close');
+ const drag=(mode,ev)=>{
+  if(ev.button!==0||(maxed&&mode==='move'))return;ev.preventDefault();
+  const el=ev.currentTarget,k=window.devicePixelRatio||1,sx=ev.screenX,sy=ev.screenY;
+  try{el.setPointerCapture(ev.pointerId)}catch(e){}
+  let base=null,busy=false,next=null;
+  dropRect().then(r=>{base=r});
+  const send=r=>{if(busy){next=r;return}busy=true;dropSetRect(r[0],r[1],r[2],r[3]).catch(()=>{}).then(()=>{busy=false;if(next){const n=next;next=null;send(n)}})};
+  const move=e=>{
+   if(!base)return;const dx=Math.round((e.screenX-sx)*k),dy=Math.round((e.screenY-sy)*k);
+   let [x,y,w,h]=base;
+   if(mode==='move'){x+=dx;y+=dy}
+   else{
+    if(mode.includes('e'))w+=dx;if(mode.includes('s'))h+=dy;
+    if(mode.includes('w'))w-=dx;if(mode.includes('n'))h-=dy;
+    w=Math.max(w,720*k);h=Math.max(h,480*k);
+    if(mode.includes('w'))x=base[0]+base[2]-w;if(mode.includes('n'))y=base[1]+base[3]-h;
+   }
+   send([x,y,w,h]);
+  };
+  const up=()=>{el.removeEventListener('pointermove',move);el.removeEventListener('pointerup',up);el.removeEventListener('pointercancel',up)};
+  el.addEventListener('pointermove',move);el.addEventListener('pointerup',up);el.addEventListener('pointercancel',up);
+ };
+ const top=document.querySelector('.top');
+ top.addEventListener('pointerdown',e=>{if(!e.target.closest('.wc'))drag('move',e)});
+ top.addEventListener('dblclick',e=>{if(!e.target.closest('.wc'))act('max')});
+ document.querySelectorAll('.rz').forEach(z=>z.addEventListener('pointerdown',e=>drag(z.dataset.e,e)));
+}
 const ping=()=>{try{fetch('/api/ping',{method:'POST'}).catch(()=>{})}catch(e){}};
 setInterval(ping,5000);ping();
 window.addEventListener('pagehide',()=>{try{navigator.sendBeacon('/api/bye')}catch(e){}});

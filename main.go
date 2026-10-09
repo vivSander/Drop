@@ -103,6 +103,7 @@ type App struct {
 	clients  map[string]*http.Client
 	lastPing time.Time
 	byeAt    time.Time
+	focus    func()
 	autoSent int
 	autoLast string
 	autoWait int
@@ -424,6 +425,21 @@ func openBrowser(url string) {
 	_ = cmd.Start()
 }
 
+// askFocus asks a running Drop with its own window to come to the front.
+func (a *App) askFocus(p int) bool {
+	req, err := http.NewRequest("POST", fmt.Sprintf("http://127.0.0.1:%d/api/focus", p), nil)
+	if err != nil {
+		return false
+	}
+	req.AddCookie(&http.Cookie{Name: "k", Value: a.cfg.Token})
+	r, err := (&http.Client{Timeout: 2 * time.Second}).Do(req)
+	if err != nil {
+		return false
+	}
+	r.Body.Close()
+	return r.StatusCode == 204
+}
+
 func (a *App) runningInstance() bool {
 	cl := &http.Client{Timeout: 700 * time.Millisecond}
 	for p := *flagPort; p < *flagPort+10; p++ {
@@ -435,7 +451,9 @@ func (a *App) runningInstance() bool {
 		_ = json.NewDecoder(r.Body).Decode(&info)
 		r.Body.Close()
 		if info.App == "drop" && info.ID == a.cfg.ID {
-			a.openWindow(fmt.Sprintf("http://127.0.0.1:%d/?k=%s", p, a.cfg.Token))
+			if !a.askFocus(p) {
+				a.openWindow(fmt.Sprintf("http://127.0.0.1:%d/?k=%s", p, a.cfg.Token))
+			}
 			return true
 		}
 	}
@@ -561,6 +579,14 @@ func (a *App) router() http.Handler {
 	m.HandleFunc("GET /peer/info", a.peerInfo)
 	m.HandleFunc("POST /api/forget", a.guard(a.apiForget))
 	m.HandleFunc("POST /api/auto", a.guard(a.apiAuto))
+	m.HandleFunc("POST /api/focus", a.guard(func(w http.ResponseWriter, r *http.Request) {
+		if a.focus == nil {
+			w.WriteHeader(404)
+			return
+		}
+		a.focus()
+		w.WriteHeader(204)
+	}))
 	m.HandleFunc("POST /api/ping", a.guard(func(w http.ResponseWriter, r *http.Request) {
 		a.mu.Lock()
 		a.lastPing = time.Now()

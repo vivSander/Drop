@@ -68,6 +68,9 @@ func (a *App) openWindow(url string) {
 // browser, or when the browser hands the window to a program that was already open,
 // Drop falls back to noticing that its page has gone.
 func (a *App) runWindow(url string) {
+	if a.nativeWindow(url) {
+		return
+	}
 	exe := findAppBrowser()
 	if exe == "" {
 		openBrowser(url)
