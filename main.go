@@ -181,7 +181,10 @@ func newApp() *App {
 }
 
 // shutdown ends Drop (used by the tray menu).
-func (a *App) shutdown() { os.Exit(0) }
+func (a *App) shutdown() {
+	a.wipeAll()
+	os.Exit(0)
+}
 
 func (a *App) save() {
 	a.mu.Lock()
@@ -487,7 +490,9 @@ func main() {
 	a.pickNet(a.cfg.Iface)
 	a.startNet()
 	go a.watchNet()
+	a.wipeAll()
 	go a.autoLoop()
+	go a.purgeLoop()
 	local := fmt.Sprintf("http://127.0.0.1:%d/?k=%s", a.port, a.cfg.Token)
 	fmt.Printf("Drop is running\n  sharing: %s\n  open:    %s\n", a.root, local)
 	if !*flagNoBrowser && !*flagHeadless {
@@ -575,7 +580,7 @@ func (a *App) router() http.Handler {
 	m.HandleFunc("POST /api/send", a.guard(a.apiSend))
 	m.HandleFunc("POST /api/quit", a.guard(func(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, 200, map[string]bool{"ok": true})
-		go func() { time.Sleep(200 * time.Millisecond); os.Exit(0) }()
+		go func() { time.Sleep(200 * time.Millisecond); a.shutdown() }()
 	}))
 	m.HandleFunc("GET /peer/info", a.peerInfo)
 	m.HandleFunc("POST /api/forget", a.guard(a.apiForget))

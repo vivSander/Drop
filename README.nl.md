@@ -42,6 +42,7 @@ Daarna per systeem:
 - **Automatisch versturen:** alles wat je in je Drop-map zet, gaat binnen een paar seconden naar al je gekoppelde apparaten. Uitzetten kan bij **Devices**.
 - **Waar het terechtkomt:** in een map met de naam van het verzendende apparaat, bijvoorbeeld `Pixel/foto.jpg`.
 - **Apparaat verwijderen:** druk op het ✕ ernaast. Het heeft meteen geen toegang meer.
+- **Er wordt niets bewaard:** wat een ander apparaat je stuurt staat in een map met de naam van dat apparaat. Die wordt gewist als je het apparaat verwijdert, als het een minuut weg is, en als Drop sluit.
 - **Afsluiten:** Drop opent in een eigen venster. Op Windows is dat een eigen venster met eigen header (via Microsoft WebView2, onderdeel van Windows 11 en recent Windows 10); elders via Edge, Chrome, Brave of Chromium als die geïnstalleerd zijn, anders je standaardbrowser. Sluit het venster en Drop stopt vanzelf. Kan ook via **Devices → Quit Drop**; op Android: **Stop** in de melding.
 
 ## Is het veilig?

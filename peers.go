@@ -655,6 +655,10 @@ func (a *App) apiPull(w http.ResponseWriter, r *http.Request) {
 // ---------------------------------------------------------------- removing devices
 
 func (a *App) dropTrust(id string) {
+	name := a.deviceNames()[id]
+	if name != "" {
+		go a.wipeInbox(name)
+	}
 	if k := a.cfg.Out[id]; k != nil {
 		delete(a.clients, k.FP)
 	}

@@ -650,7 +650,7 @@ function devClick(p){
   startPair(p);
 }
 async function removeDevice(p){
-  const ok=await ask({title:'Remove '+p.name+'?',text:'It will no longer be able to see or receive your files, and you won\u2019t see its files. Files already sent stay where they are. To use it again, connect it again.',ok:'Remove',danger:true});
+  const ok=await ask({title:'Remove '+p.name+'?',text:'It will no longer be able to see or receive your files, and you won\u2019t see its files. Everything it sent you is deleted from this device. To use it again, connect it again.',ok:'Remove',danger:true});
   if(!ok)return;
   try{await api('/api/forget',{id:p.id});toast(p.name+' removed');if(R&&R.id===p.id){R=null;location.hash='#/'}refreshPeers()}catch(e){fail(e)}
 }
