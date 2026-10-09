@@ -20,7 +20,7 @@ body.native .top{user-select:none;-webkit-user-select:none;position:fixed;left:0
 body.native .app{grid-template-rows:none}body.native .main{padding-top:48px}
 body.native .top>svg,body.native .top>b{display:none}
 body.native .wc button{color:#fff;height:36px}body.native .wc button:hover{background:rgba(255,255,255,.12)}body.native .wc button.x:hover{background:#E81123}
-body.native .side{top:0;height:100dvh}
+body.native .side{top:0;height:100dvh;padding-top:48px}
 html.native-win,html.native-win body{background:var(--bg)}
 .rz{position:fixed;z-index:50;display:none}body.native .rz{display:block}
 .rz[data-e=n]{top:0;left:8px;right:8px;height:5px;cursor:ns-resize}.rz[data-e=s]{bottom:0;left:8px;right:8px;height:5px;cursor:ns-resize}
@@ -39,6 +39,7 @@ body.native::after{content:"";position:fixed;inset:0;border:1px solid var(--line
 .tr.on{background:var(--acc-soft);color:var(--acc);font-weight:650}
 .tr .car{border:0;background:none;padding:0;width:18px;height:18px;display:grid;place-items:center;color:var(--quiet);cursor:pointer;border-radius:5px;flex:none;transition:transform .12s}
 .tr .car.open{transform:rotate(90deg)}.tr .car.none{visibility:hidden}
+#tree:not(:has(.car:not(.none))) .car.none{display:none}
 .tr.hot{background:var(--sig);color:var(--sig-ink);outline:2px solid var(--sig-ink)}
 .main{position:relative;z-index:2;padding:30px clamp(16px,3vw,44px) 130px;min-width:0}
 .head{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:18px 28px;margin-bottom:26px}
