@@ -826,8 +826,7 @@ function renderRemote(){
     h('button',{class:'btn',title:'Switch view',onclick:()=>{view=view==='grid'?'list':'grid';LS.set('view',view);renderRemote()}},icon(view==='grid'?'list':'grid')),
     R.peer&&h('button',{class:'btn',onclick:()=>removeDevice(R.peer)},icon('trash'),'Remove device'));
   const fab=$('#fab');
-  fab.hidden=!ok||R.peer.offline;put(fab,icon('send',20),'Send files to '+name);
-  fab.onclick=()=>{sendTarget=R.peer;$('#spick').click()};
+  fab.hidden=true;
   const c=$('#rcontent');c.className=view==='list'?'list':'';
   if(!R.peer){put(c,h('div',{class:'rnote'},h('b',{},'Looking for this device…'),h('p',{},'Open Drop on it and make sure it is on the same network.')));return}
   if(!ok){put(c,h('div',{class:'rnote'},h('b',{},name+' isn’t connected'),h('p',{},'Go back and tap it to connect.')));return}
@@ -836,7 +835,7 @@ function renderRemote(){
   const dirs=R.entries.filter(e=>e.dir).sort((a,b)=>a.name.localeCompare(b.name,undefined,{numeric:true,sensitivity:'base'}));
   const files=R.entries.filter(e=>!e.dir).sort(sortBy==='new'?(a,b)=>b.t-a.t:(a,b)=>a.name.localeCompare(b.name,undefined,{numeric:true,sensitivity:'base'}));
   put(c,R.err&&h('div',{class:'rnote',style:'margin-bottom:16px;padding:14px'},R.err),
-    !dirs.length&&!files.length&&h('div',{class:'empty'},h('b',{},R.path?'This folder is empty':'No files on '+name+' yet'),h('p',{},'Tap Send files to put some there. Anything you drop on this page goes straight to '+name+'.')),
+    !dirs.length&&!files.length&&h('div',{class:'empty'},h('b',{},R.path?'This folder is empty':'No files on '+name+' yet'),h('p',{},isPhone?'Whatever you add on the home screen is sent to it automatically.':'Anything you drop on this page goes straight to '+name+'.')),
     dirs.length>0&&h('div',{class:'sec dirs'},dirs.map(rTile)),files.length>0&&h('div',{class:'sec files'},files.map(rTile)));
   updateSel();
 }
