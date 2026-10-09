@@ -29,7 +29,6 @@ jobs:
         with:
           distribution: temurin
           java-version: "17"
-      - uses: android-actions/setup-android@v3
       - name: Android app
         continue-on-error: true   # the computer apps are still published if this step fails
         env:
@@ -37,7 +36,10 @@ jobs:
           KEYSTORE_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
         run: |
-          sdkmanager "platforms;android-33" "build-tools;34.0.0" >/dev/null
+          export ANDROID_HOME="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
+          SDKM="$(ls "$ANDROID_HOME"/cmdline-tools/*/bin/sdkmanager | sort -V | tail -1)"
+          yes | "$SDKM" --licenses >/dev/null 2>&1 || true
+          "$SDKM" "platforms;android-33" "build-tools;34.0.0" >/dev/null
           if [ -n "$KEYSTORE_B64" ]; then
             echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/release.jks"
             export KEYSTORE_FILE="$RUNNER_TEMP/release.jks" KEYSTORE_PASS KEY_ALIAS
