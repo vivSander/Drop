@@ -12,7 +12,6 @@ button,input,textarea{font:inherit;color:inherit}
 .ic{display:inline-flex;flex:none}.ic svg{display:block}
 .app{display:grid;grid-template-columns:248px minmax(0,1fr);grid-template-rows:auto 1fr;min-height:100dvh}
 .top{grid-column:1/-1;position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:10px;height:54px;padding:0 18px;background:var(--acc);color:#000;padding-top:env(safe-area-inset-top)}
-.brand{display:none}body.native .brand{display:flex;align-items:center;gap:10px;padding:0 12px 18px;color:var(--acc)}.brand svg{width:26px;height:26px}.brand b{font-size:22px;font-weight:800;letter-spacing:-.04em}
 .top .grow{flex:1;align-self:stretch}
 .wc{display:flex;align-self:stretch}.wc[hidden]{display:none}
 .wc button{width:48px;border:0;background:transparent;color:#000;display:grid;place-items:center;cursor:default;padding:0}
@@ -21,7 +20,7 @@ body.native .top{user-select:none;-webkit-user-select:none;position:fixed;left:0
 body.native .app{grid-template-rows:none}body.native .main{padding-top:48px}
 body.native .top>svg,body.native .top>b{display:none}
 body.native .wc button{color:#fff;height:36px}body.native .wc button:hover{background:rgba(255,255,255,.12)}body.native .wc button.x:hover{background:#E81123}
-body.native .side{top:0;height:100dvh;padding-top:34px}
+body.native .side{top:0;height:100dvh;padding-top:48px}
 html.native-win,html.native-win body{background:var(--bg)}
 .rz{position:fixed;z-index:50;display:none}body.native .rz{display:block}
 .rz[data-e=n]{top:0;left:8px;right:8px;height:5px;cursor:ns-resize}.rz[data-e=s]{bottom:0;left:8px;right:8px;height:5px;cursor:ns-resize}
@@ -199,11 +198,11 @@ body:has(.selbar:not([hidden])) .sendfab{bottom:90px}
 .chkrow input{width:18px;height:18px;accent-color:var(--acc)}
 </style></head><body>
 <div id="off" hidden>Can't reach your computer. Check that Drop is still running.</div>
-<div class="veil" id="veil"><div class="veil-in"><span>Drop into</span><b id="veilname">Received</b></div></div>
+<div class="veil" id="veil"><div class="veil-in"><span>Drop into</span><b id="veilname">Drop</b></div></div>
 <div class="app">
   <div class="top"><svg viewBox="0 0 24 24" fill="#000" aria-hidden="true"><path d="M9.5 2h5v8.2h3.7L12 17 5.8 10.2h3.7z"/><rect x="4" y="19.5" width="16" height="2.5" rx=".6"/></svg><b>Drop</b><span class="grow"></span><div class="wc" id="wc" hidden><button id="wmin" aria-label="Minimise" title="Minimise"><svg viewBox="0 0 10 10"><path d="M0 5.5h10" stroke="currentColor" fill="none"/></svg></button><button id="wmax" aria-label="Maximise" title="Maximise"><svg viewBox="0 0 10 10"><rect x=".5" y=".5" width="9" height="9" stroke="currentColor" fill="none"/></svg></button><button id="wx" class="x" aria-label="Close" title="Close"><svg viewBox="0 0 10 10"><path d="M0 0l10 10M10 0L0 10" stroke="currentColor" fill="none"/></svg></button></div></div>
   <div class="rz" data-e="n"></div><div class="rz" data-e="s"></div><div class="rz" data-e="e"></div><div class="rz" data-e="w"></div><div class="rz" data-e="ne"></div><div class="rz" data-e="nw"></div><div class="rz" data-e="se"></div><div class="rz" data-e="sw"></div>
-  <aside class="side"><div class="brand"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M9.5 2h5v8.2h3.7L12 17 5.8 10.2h3.7z"/><rect x="4" y="19.5" width="16" height="2.5" rx=".6"/></svg><b>Drop</b></div><nav id="tree" aria-label="Folders"></nav><div class="devs" id="devs"></div></aside>
+  <aside class="side"><nav id="tree" aria-label="Folders"></nav><div class="devs" id="devs"></div></aside>
   <main class="main" id="main">
     <header class="head local"><h1 id="crumbs"></h1><div class="tools" id="tools"></div></header>
     <div class="devstrip" id="devstrip"></div>
@@ -316,7 +315,7 @@ window.addEventListener('hashchange',route);
 function crumb(label,path){const a=h('a',{class:'crumb',href:hashOf(path)},label);dropTarget(a,()=>path);return a}
 function render(){
   document.title=(cwd?base(cwd)+' - ':'')+'Drop';
-  const cr=$('#crumbs');cr.replaceChildren(crumb('Received',''));
+  const cr=$('#crumbs');cr.replaceChildren(crumb('Drop',''));
   let acc='';for(const s of (cwd?cwd.split('/'):[])){acc=join(acc,s);cr.append(h('i',{},'/'),crumb(s,acc))}
   const tools=$('#tools');
   put(tools,
@@ -369,7 +368,7 @@ function renderTree(){
     dropTarget(a,()=>p);nav.append(a);return open;
   };
   const walk=(nodes,b,d)=>{for(const n of nodes){const p=join(b,n.name);if(row(n.name,p,d,n.c.length)&&n.c.length)walk(n.c,p,d+1)}};
-  if(row('Received','',0,treeData.length))walk(treeData,'',1);
+  if(row('Drop','',0,treeData.length))walk(treeData,'',1);
 }
 
 /* ---------- selection ---------- */
@@ -425,7 +424,7 @@ function pickFolder(exclude){return new Promise(res=>{
   d.oncancel=()=>{fin=true;res(null)};
   const items=[];
   const walk=(nodes,b,depth)=>{for(const n of nodes){const p=join(b,n.name);items.push({p,name:n.name,depth});walk(n.c,p,depth+1)}};
-  items.push({p:'',name:'Received',depth:0});walk(treeData,'',1);
+  items.push({p:'',name:'Drop',depth:0});walk(treeData,'',1);
   const blocked=p=>exclude.some(x=>p===x||p.startsWith(x+'/'))||p===cwd;
   d.replaceChildren(h('div',{class:'dlg'},h('h2',{},'Move to'),
     h('div',{class:'plist'},items.map(i=>h('button',{class:'pi',style:'padding-left:'+(10+i.depth*18)+'px',disabled:blocked(i.p),onclick:()=>done(i.p)},icon('folder',17),i.name))),
@@ -442,7 +441,7 @@ async function newFolder(){
 let dragDepth=0;
 const types=e=>Array.from((e.dataTransfer&&e.dataTransfer.types)||[]);
 const accepts=e=>{const t=types(e);return t.includes('Files')||t.includes('application/x-drop')};
-function setVeil(p){$('#veilname').textContent=p?base(p):'Received'}
+function setVeil(p){$('#veilname').textContent=p?base(p):'Drop'}
 function dropTarget(el,get,custom){
   el.addEventListener('dragover',e=>{if(!accepts(e))return;e.preventDefault();e.stopPropagation();const ext=types(e).includes('Files');e.dataTransfer.dropEffect=ext?'copy':'move';el.classList.add('hot');if(ext)setVeil(get())});
   el.addEventListener('dragleave',e=>{if(!el.contains(e.relatedTarget))el.classList.remove('hot')});
@@ -781,7 +780,7 @@ function renderRemote(){
   const name=R.peer?R.peer.name:'Device';
   document.title=name+' - Drop';
   const ok=R.peer&&R.peer.state==='paired';
-  const cr=$('#rcrumbs');cr.replaceChildren(h('a',{class:'crumb',href:'#/'},'Received'),h('i',{},'/'),h('a',{class:'crumb',href:rhash(R.id,'')},name));
+  const cr=$('#rcrumbs');cr.replaceChildren(h('a',{class:'crumb',href:'#/'},'Drop'),h('i',{},'/'),h('a',{class:'crumb',href:rhash(R.id,'')},name));
   let acc='';for(const s of (R.path?R.path.split('/'):[])){acc=join(acc,s);cr.append(h('i',{},'/'),h('a',{class:'crumb',href:rhash(R.id,acc)},s))}
   put($('#rtools'),
     h('button',{class:'btn',onclick:()=>{location.hash='#/'}},icon('left'),'Back'),
