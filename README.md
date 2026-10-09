@@ -96,4 +96,4 @@ One small program written in Go, with a web page built in. It listens in two pla
 
 ## License
 
-[MIT](LICENSE).
+Drop is free to use, but not to copy, change or redistribute. See [LICENSE](LICENSE). Third-party components are listed in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).

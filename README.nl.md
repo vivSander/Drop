@@ -62,4 +62,4 @@ Let op: een gekoppeld apparaat kan alles in je Drop-map zien en er bestanden in 
 
 ## Licentie
 
-[MIT](LICENSE).
+Drop is gratis te gebruiken, maar niet om te kopiëren, aan te passen of door te geven. Zie [LICENSE](LICENSE). Onderdelen van derden staan in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
