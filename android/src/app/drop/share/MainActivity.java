@@ -52,7 +52,7 @@ public class MainActivity extends Activity {
                 == Configuration.UI_MODE_NIGHT_YES;
         web = new WebView(this);
         web.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-        web.setBackgroundColor(night ? Color.parseColor("#0E1120") : Color.parseColor("#EDF0F4"));
+        web.setBackgroundColor(Color.parseColor("#0E1120"));
         setContentView(web);
 
         WebSettings s = web.getSettings();

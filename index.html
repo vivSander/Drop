@@ -1,19 +1,20 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#4B3FEF">
+<meta name="theme-color" content="#9088FF">
 <title>Drop</title>
 <style>
-:root{--bg:#EDF0F4;--panel:#fff;--ink:#15192B;--quiet:#667089;--line:#DBE0E9;--acc:#4B3FEF;--acc-ink:#fff;--acc-soft:#E4E2FC;--sig:#D8F34B;--sig-ink:#182000;--danger:#D6314A;--del:#FF8DA0;
+:root{--bg:#0E1120;--panel:#171B2F;--ink:#ECEEF8;--quiet:#8D94AE;--line:#2A3050;--acc:#9088FF;--acc-ink:#0E1120;--acc-soft:#25295A;--sig:#D8F34B;--sig-ink:#182000;--danger:#D6314A;--del:#C4203D;
 --font:"Avenir Next","Segoe UI Variable Display","Segoe UI",system-ui,-apple-system,Roboto,"Helvetica Neue",sans-serif}
-@media(prefers-color-scheme:dark){:root{--bg:#0E1120;--panel:#171B2F;--ink:#ECEEF8;--quiet:#8D94AE;--line:#2A3050;--acc:#9088FF;--acc-ink:#0E1120;--acc-soft:#25295A;--del:#C4203D}}
 *{box-sizing:border-box}
-html{color-scheme:light dark}
+html{color-scheme:dark}
 body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 var(--font);-webkit-tap-highlight-color:transparent}
 button,input,textarea{font:inherit;color:inherit}
 .ic{display:inline-flex;flex:none}.ic svg{display:block}
-.app{display:grid;grid-template-columns:248px minmax(0,1fr);min-height:100dvh}
-.side{position:sticky;top:0;height:100dvh;overflow:hidden;display:flex;flex-direction:column;background:var(--panel);border-right:1px solid var(--line);padding:22px 10px;z-index:3}
-.brand{font-weight:800;font-size:22px;letter-spacing:-.04em;color:var(--acc);padding:0 12px 18px}
+.app{display:grid;grid-template-columns:248px minmax(0,1fr);grid-template-rows:auto 1fr;min-height:100dvh}
+.top{grid-column:1/-1;position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:10px;height:54px;padding:0 18px;background:var(--acc);color:#000;padding-top:env(safe-area-inset-top)}
+.top svg{width:26px;height:26px;flex:none}.top b{font-size:20px;font-weight:800;letter-spacing:-.04em}
+.side{position:sticky;top:54px;height:calc(100dvh - 54px);overflow:hidden;display:flex;flex-direction:column;background:var(--panel);border-right:1px solid var(--line);padding:22px 10px;z-index:3}
+
 .tr{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:10px;color:var(--ink);text-decoration:none;font-size:14.5px;min-width:0}
 .tr span.t{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tr:hover{background:var(--bg)}
@@ -47,7 +48,7 @@ h1 i{font-style:normal;color:var(--line);font-weight:400}
 .thumb{aspect-ratio:4/3;display:grid;place-items:center;background:hsl(var(--h,230) 32% 94%);overflow:hidden}
 .thumb img{width:100%;height:100%;object-fit:cover;display:block}
 .badge{font-weight:800;font-size:19px;letter-spacing:-.02em;color:hsl(var(--h,230) 45% 36%)}
-@media(prefers-color-scheme:dark){.thumb{background:hsl(var(--h,230) 22% 20%)}.badge{color:hsl(var(--h,230) 70% 78%)}}
+.thumb{background:hsl(var(--h,230) 22% 20%)}.badge{color:hsl(var(--h,230) 70% 78%)}
 .meta{padding:10px 12px 12px}
 .name{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;overflow-wrap:anywhere;font-weight:600;font-size:14px;line-height:1.3}
 .sub{display:block;color:var(--quiet);font-size:12.5px;margin-top:2px}
@@ -179,7 +180,8 @@ body:has(.selbar:not([hidden])) .sendfab{bottom:90px}
 <div id="off" hidden>Can't reach your computer. Check that Drop is still running.</div>
 <div class="veil" id="veil"><div class="veil-in"><span>Drop into</span><b id="veilname">Drop</b></div></div>
 <div class="app">
-  <aside class="side"><div class="brand">Drop</div><nav id="tree" aria-label="Folders"></nav><div class="devs" id="devs"></div></aside>
+  <div class="top"><svg viewBox="0 0 24 24" fill="#000" aria-hidden="true"><path d="M9.5 2h5v8.2h3.7L12 17 5.8 10.2h3.7z"/><rect x="4" y="19.5" width="16" height="2.5" rx=".6"/></svg><b>Drop</b></div>
+  <aside class="side"><nav id="tree" aria-label="Folders"></nav><div class="devs" id="devs"></div></aside>
   <main class="main" id="main">
     <header class="head local"><h1 id="crumbs"></h1><div class="tools" id="tools"></div></header>
     <div class="devstrip" id="devstrip"></div>
