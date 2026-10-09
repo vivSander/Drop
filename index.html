@@ -783,6 +783,11 @@ function renderRemote(){
 }
 setInterval(()=>{if(R&&!document.hidden&&!dragDepth)rload()},2500);
 
+/* ---------- keep-alive: lets Drop end itself when this page is closed ---------- */
+const ping=()=>{try{fetch('/api/ping',{method:'POST'}).catch(()=>{})}catch(e){}};
+setInterval(ping,5000);ping();
+window.addEventListener('pagehide',()=>{try{navigator.sendBeacon('/api/bye')}catch(e){}});
+
 /* ---------- start ---------- */
 if(matchMedia('(hover:none)').matches)document.body.classList.add('touch');
 cwd=parseHash();

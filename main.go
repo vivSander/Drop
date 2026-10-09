@@ -101,6 +101,8 @@ type App struct {
 	tlsCert  tls.Certificate
 	fp       string
 	clients  map[string]*http.Client
+	lastPing time.Time
+	byeAt    time.Time
 	autoSent int
 	autoLast string
 	autoWait int
@@ -433,7 +435,7 @@ func (a *App) runningInstance() bool {
 		_ = json.NewDecoder(r.Body).Decode(&info)
 		r.Body.Close()
 		if info.App == "drop" && info.ID == a.cfg.ID {
-			openBrowser(fmt.Sprintf("http://127.0.0.1:%d/?k=%s", p, a.cfg.Token))
+			a.openWindow(fmt.Sprintf("http://127.0.0.1:%d/?k=%s", p, a.cfg.Token))
 			return true
 		}
 	}
@@ -469,11 +471,8 @@ func main() {
 	go a.autoLoop()
 	local := fmt.Sprintf("http://127.0.0.1:%d/?k=%s", a.port, a.cfg.Token)
 	fmt.Printf("Drop is running\n  sharing: %s\n  open:    %s\n", a.root, local)
-	if !*flagHeadless {
-		startTray(a, local)
-	}
 	if !*flagNoBrowser && !*flagHeadless {
-		go func() { time.Sleep(400 * time.Millisecond); openBrowser(local) }()
+		go func() { time.Sleep(300 * time.Millisecond); a.runWindow(local) }()
 	}
 	srv := &http.Server{Handler: a.local(a.router()), ReadHeaderTimeout: 10 * time.Second, IdleTimeout: 2 * time.Minute}
 	_ = srv.Serve(ln)
@@ -562,6 +561,18 @@ func (a *App) router() http.Handler {
 	m.HandleFunc("GET /peer/info", a.peerInfo)
 	m.HandleFunc("POST /api/forget", a.guard(a.apiForget))
 	m.HandleFunc("POST /api/auto", a.guard(a.apiAuto))
+	m.HandleFunc("POST /api/ping", a.guard(func(w http.ResponseWriter, r *http.Request) {
+		a.mu.Lock()
+		a.lastPing = time.Now()
+		a.mu.Unlock()
+		w.WriteHeader(204)
+	}))
+	m.HandleFunc("POST /api/bye", a.guard(func(w http.ResponseWriter, r *http.Request) {
+		a.mu.Lock()
+		a.byeAt = time.Now()
+		a.mu.Unlock()
+		w.WriteHeader(204)
+	}))
 	m.HandleFunc("PUT /api/sendto/{id}/{path...}", a.guard(a.apiSendTo))
 	m.HandleFunc("GET /api/remote/ls", a.guard(a.remoteProxy("ls")))
 	m.HandleFunc("GET /api/remote/f/{path...}", a.guard(a.remoteProxy("f")))
