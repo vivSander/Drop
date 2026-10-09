@@ -44,7 +44,7 @@ Things that are good to know:
 - **Automatic sending:** anything you add to your Drop folder is sent to all your connected devices within a couple of seconds. Switch it off under **Devices**.
 - **Where files land:** in a folder with the sender's device name, for example `Pixel/photo.jpg`, next to your own files. Your Drop folder is `Drop` in your home folder (on Android: inside the app's own storage; use **Download** on a file to put a copy in your phone's Downloads).
 - **Remove a device:** press the ✕ next to it. It then loses all access immediately.
-- **Quit:** press **Devices → Quit Drop** (computer), or **Stop** in the notification (Android). The Windows version has no window of its own, so use this or end `Drop.exe` in Task Manager.
+- **Quit:** on Windows, Drop lives in the notification area next to the clock (maybe under the ^ arrow): click the icon to open Drop, right-click it for **Quit Drop**. On other computers use **Devices → Quit Drop**; on Android press **Stop** in the notification.
 
 ## Is it safe?
 

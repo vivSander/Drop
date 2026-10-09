@@ -176,6 +176,9 @@ func newApp() *App {
 	return a
 }
 
+// shutdown ends Drop (used by the tray menu).
+func (a *App) shutdown() { os.Exit(0) }
+
 func (a *App) save() {
 	a.mu.Lock()
 	defer a.mu.Unlock()
@@ -466,6 +469,9 @@ func main() {
 	go a.autoLoop()
 	local := fmt.Sprintf("http://127.0.0.1:%d/?k=%s", a.port, a.cfg.Token)
 	fmt.Printf("Drop is running\n  sharing: %s\n  open:    %s\n", a.root, local)
+	if !*flagHeadless {
+		startTray(a, local)
+	}
 	if !*flagNoBrowser && !*flagHeadless {
 		go func() { time.Sleep(400 * time.Millisecond); openBrowser(local) }()
 	}

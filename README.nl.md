@@ -42,7 +42,7 @@ Daarna per systeem:
 - **Automatisch versturen:** alles wat je in je Drop-map zet, gaat binnen een paar seconden naar al je gekoppelde apparaten. Uitzetten kan bij **Devices**.
 - **Waar het terechtkomt:** in een map met de naam van het verzendende apparaat, bijvoorbeeld `Pixel/foto.jpg`.
 - **Apparaat verwijderen:** druk op het ✕ ernaast. Het heeft meteen geen toegang meer.
-- **Afsluiten:** **Devices → Quit Drop** (computer) of **Stop** in de melding (Android).
+- **Afsluiten:** in Windows staat Drop als icoontje naast de klok (misschien onder het pijltje ^): klik erop om Drop te openen, rechtsklik voor **Quit Drop**. Op andere computers: **Devices → Quit Drop**; op Android: **Stop** in de melding.
 
 ## Is het veilig?
 
