@@ -542,8 +542,8 @@ function showPv(){
   const nav=(cls,d,ic)=>pv.files.length>1&&h('button',{class:'pv-nav '+cls,'aria-label':d<0?'Previous':'Next',onclick:()=>step(d)},icon(ic,22));
   $('#view').replaceChildren(h('div',{class:'pv'},
     h('div',{class:'pv-top'},h('b',{},name),h('span',{class:'n'},(pv.i+1)+' / '+pv.files.length),
-      h('a',{class:'btn',href:fsrc(p,true)},icon('download',17),'Download'),
-      h('button',{class:'btn',onclick:()=>$('#view').close()},icon('x',17),'Close')),
+      h('a',{class:'btn',href:fsrc(p,true),title:'Download','aria-label':'Download'},icon('download',17)),
+      h('button',{class:'btn',title:'Close','aria-label':'Close',onclick:()=>$('#view').close()},icon('x',17))),
     h('div',{class:'pv-stage'},stage),nav('l',-1,'left'),nav('r',1,'chev')));
 }
 function step(d){pv.i=(pv.i+d+pv.files.length)%pv.files.length;showPv()}
