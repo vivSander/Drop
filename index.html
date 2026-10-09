@@ -27,6 +27,8 @@ html.native-win,html.native-win body{background:var(--bg)}
 .rz[data-e=e]{right:0;top:8px;bottom:8px;width:5px;cursor:ew-resize}.rz[data-e=w]{left:0;top:8px;bottom:8px;width:5px;cursor:ew-resize}
 .rz[data-e=ne]{top:0;right:0;width:8px;height:8px;cursor:nesw-resize}.rz[data-e=sw]{bottom:0;left:0;width:8px;height:8px;cursor:nesw-resize}
 .rz[data-e=nw]{top:0;left:0;width:8px;height:8px;cursor:nwse-resize}.rz[data-e=se]{bottom:0;right:0;width:8px;height:8px;cursor:nwse-resize}
+html.phone .top{display:none}
+html.native-win *{scrollbar-width:none}html.native-win ::-webkit-scrollbar{display:none;width:0;height:0}
 body.native::after{content:"";position:fixed;inset:0;border:1px solid var(--line);border-radius:8px;pointer-events:none;z-index:60}
 .top svg{width:26px;height:26px;flex:none}.top b{font-size:20px;font-weight:800;letter-spacing:-.04em}
 .side{position:sticky;top:54px;height:calc(100dvh - 54px);overflow:hidden;display:flex;flex-direction:column;background:var(--panel);border-right:1px solid var(--line);padding:22px 10px;z-index:3}
@@ -121,9 +123,9 @@ dialog::backdrop{background:rgba(12,14,30,.5);backdrop-filter:blur(3px)}
 .plist{max-height:46vh;overflow:auto;display:flex;flex-direction:column;gap:2px;margin:0 -8px}
 .pi{display:flex;align-items:center;gap:8px;border:0;background:none;text-align:left;padding:9px 10px;border-radius:10px;cursor:pointer}
 .pi:hover:not(:disabled){background:var(--acc-soft)}.pi:disabled{opacity:.4;cursor:not-allowed}
-#view{width:100vw;max-width:none;height:100dvh;max-height:none;margin:0;border-radius:0;background:rgba(9,11,24,.95);color:#fff}
+#view{position:fixed;inset:0;width:100%;max-width:none;height:100%;max-height:none;overflow:hidden;margin:0;border-radius:0;background:rgba(9,11,24,.95);color:#fff}
 #view::backdrop{background:none;backdrop-filter:none}
-.pv{display:grid;grid-template-rows:auto minmax(0,1fr);height:100dvh}
+.pv{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr);height:100%;overflow:hidden}
 .pv-top{display:flex;align-items:center;gap:10px;padding:14px 18px}
 .pv-top b{flex:1;min-width:0;font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pv-top span.n{color:#9aa1bd;font-size:13px}
@@ -133,6 +135,7 @@ dialog::backdrop{background:rgba(12,14,30,.5);backdrop-filter:blur(3px)}
 .pv-stage>iframe{width:100%;height:100%;border:0;border-radius:10px;background:#fff}
 .pv-stage>audio{width:min(560px,100%)}
 .pv-none{text-align:center;color:#aab0cb}
+ @media(max-width:820px){.pv-top{padding:10px 12px;gap:8px}.pv-top span.n{display:none}.pv .btn{padding:9px 10px}.pv-stage{padding:0 8px 12px}}
 .pv-nav{position:absolute;top:50%;margin-top:-26px;width:48px;height:52px;border:0;border-radius:14px;background:rgba(255,255,255,.1);color:#fff;cursor:pointer;display:grid;place-items:center}
 .pv-nav:hover{background:rgba(255,255,255,.2)}.pv-nav.l{left:8px}.pv-nav.r{right:8px}
 #tree{flex:1;min-height:0;overflow:auto}
@@ -213,7 +216,7 @@ body:has(.selbar:not([hidden])) .sendfab{bottom:90px}
 <dialog id="dlg"></dialog><dialog id="view"></dialog><dialog id="dev"></dialog><dialog id="pair"></dialog>
 <input type="file" id="spick" multiple hidden><input type="file" id="fpick" multiple hidden><input type="file" id="dpick" webkitdirectory hidden>
 <script>
-const isPhone=/Android/i.test(navigator.userAgent);
+const isPhone=/Android/i.test(navigator.userAgent);if(isPhone)document.documentElement.classList.add('phone');
 (()=>{
 'use strict';
 const $=s=>document.querySelector(s);
@@ -316,9 +319,6 @@ function render(){
   const tools=$('#tools');
   put(tools,
     h('button',{class:'btn pri',onclick:()=>$('#fpick').click()},icon('upload'),'Add files'),
-    // on computers Drop only shares files; folders and notes are phone-only
-    isPhone&&h('button',{class:'btn',onclick:newFolder},icon('folderplus'),'New folder'),
-    isPhone&&h('button',{class:'btn',title:'Shared text',onclick:note},icon('note'),'Text'),
     h('button',{class:'btn',title:'Nearby devices and network',onclick:openDevices},icon('phone'),'Devices',h('span',{class:'cnt',id:'devcnt',hidden:!peers.length},String(peers.length))),
     h('button',{class:'btn',title:'Change sort order',onclick:()=>{sortBy=sortBy==='name'?'new':'name';LS.set('sort',sortBy);render()}},icon('sort'),sortBy==='name'?'Name':'Newest'),
     h('button',{class:'btn',title:'Switch view',onclick:()=>{view=view==='grid'?'list':'grid';LS.set('view',view);render()}},icon(view==='grid'?'list':'grid')));
