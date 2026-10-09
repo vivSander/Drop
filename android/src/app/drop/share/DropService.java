@@ -157,7 +157,7 @@ public class DropService extends Service {
         while (!stopping) {
             try {
                 ProcessBuilder pb = new ProcessBuilder(lib.getAbsolutePath(), "--headless", "--no-browser",
-                        "--port", "8765", "--name", deviceName(), "--dir", dir.getAbsolutePath(),
+                        "--port", "47865", "--name", deviceName(), "--dir", dir.getAbsolutePath(),
                         "--config", cfg.getAbsolutePath());
                 Map<String, String> env = pb.environment();
                 env.put("DROP_TOKEN", token);

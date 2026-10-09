@@ -133,6 +133,7 @@ dialog::backdrop{background:rgba(12,14,30,.5);backdrop-filter:blur(3px)}
 .cnt[hidden]{display:none}
 .devlist{display:flex;flex-direction:column;gap:2px;margin:0 -8px}
 .addrow{display:flex;gap:8px}.addrow input{flex:1;min-width:0}
+.addr{margin:0;font-size:13px;color:var(--quiet)}
 .codein{font-size:30px;letter-spacing:.18em;text-align:center;font-weight:700}
 .dlg label{font-weight:650;font-size:14px}
 .dlg select{width:100%;padding:11px 13px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink)}
@@ -537,7 +538,7 @@ document.addEventListener('keydown',e=>{
 
 /* ---------- phone + text ---------- */
 /* ---------- devices ---------- */
-let me={id:'',name:''},peers=[],incoming=[],netinfo={ifaces:[],cur:'',ip:'',error:''},headless=false,autoOn=true,autoSeen=null,recvSeen=null,netSig='',sendTarget=null,pairingFor=null;
+let me={id:'',name:''},peers=[],incoming=[],netinfo={ifaces:[],cur:'',ip:'',port:0,error:''},headless=false,autoOn=true,autoSeen=null,recvSeen=null,netSig='',sendTarget=null,pairingFor=null;
 const askedIncoming=new Set();
 const netLabel=i=>i.name+' ('+i.ip+')';
 async function refreshPeers(){
@@ -581,7 +582,7 @@ function buildNet(ns){
   if(!ifs.length){put(ns,h('p',{class:'warn'},'Not connected to a network. Connect to Wi-Fi or plug in a cable to share.'));return}
   const sel=h('select',{id:'netsel'},ifs.map(i=>h('option',{value:i.name,selected:i.name===netinfo.cur},netLabel(i))));
   sel.onchange=async()=>{try{await api('/api/net',{name:sel.value});netSig='';toast('Sharing over '+sel.value);refreshPeers()}catch(e){fail(e)}};
-  put(ns,h('label',{for:'netsel'},'Share over'),sel,netinfo.error&&h('p',{class:'warn'},netinfo.error));
+  put(ns,h('label',{for:'netsel'},'Share over'),sel,netinfo.error&&h('p',{class:'warn'},netinfo.error),netinfo.ip&&h('p',{class:'addr'},'This device\u2019s address: ',h('b',{},netinfo.ip+':'+netinfo.port)));
 }
 function devClick(p){
   if(p.state==='paired'&&p.offline){toast(p.name+' isn\u2019t on this network right now');return}
@@ -664,7 +665,7 @@ async function sendPaths(p,paths){
 }
 function openDevices(){
   const d=$('#dev');if(d.open)return;
-  const addr=h('input',{type:'text',id:'addr',placeholder:'Address, for example 192.168.1.20:8765',autocomplete:'off',spellcheck:'false'});
+  const addr=h('input',{type:'text',id:'addr',placeholder:'Address, for example 192.168.1.20:47865',autocomplete:'off',spellcheck:'false'});
   d.replaceChildren(h('div',{class:'dlg'},
     h('h2',{},'Devices'),
     h('p',{},'Open Drop on your other device and join the same network. Pick the network to share over.'),

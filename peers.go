@@ -89,7 +89,7 @@ func (a *App) apiPeers(w http.ResponseWriter, r *http.Request) {
 		"me":       map[string]string{"id": a.cfg.ID, "name": a.cfg.Name},
 		"peers":    list,
 		"incoming": inc,
-		"net":      map[string]any{"ifaces": ifs, "cur": cur, "ip": ip, "error": a.lanErr},
+		"net":      map[string]any{"ifaces": ifs, "cur": cur, "ip": ip, "port": a.port, "error": a.lanErr},
 		"received": a.received,
 		"auto":     !a.cfg.AutoOff,
 		"autoSent": a.autoSent,
@@ -123,10 +123,10 @@ func (a *App) apiPeerAdd(w http.ResponseWriter, r *http.Request) {
 	s = strings.TrimSuffix(s, "/")
 	host, port, err := net.SplitHostPort(s)
 	if err != nil {
-		host, port = s, "8765"
+		host, port = s, "47865"
 	}
 	if host == "" || strings.ContainsAny(host, "/ ?#@") {
-		apiErr(w, 400, "That doesn't look like an address. Try 192.168.1.20:8765")
+		apiErr(w, 400, "That doesn't look like an address. Try 192.168.1.20:47865")
 		return
 	}
 	resp, err := unpinnedClient.Get("https://" + net.JoinHostPort(host, port) + "/peer/info")

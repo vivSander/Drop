@@ -32,7 +32,7 @@ var (
 	flagName      = flag.String("name", "", "name other devices see (default: this computer's name)")
 	flagDir       = flag.String("dir", "", "folder to share (default: ~/Drop)")
 	flagConfig    = flag.String("config", "", "settings file (default: in your user settings folder)")
-	flagPort      = flag.Int("port", 8765, "port to use")
+	flagPort      = flag.Int("port", 47865, "port to use")
 	flagNoBrowser = flag.Bool("no-browser", false, "don't open the app window")
 	flagHeadless  = flag.Bool("headless", false, "run as a background service (used by the Android app)")
 )

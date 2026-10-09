@@ -71,7 +71,7 @@ More detail, and how to report a problem privately: [SECURITY.md](SECURITY.md).
 
 - **The devices don't see each other.** They must be on the same network. Guest Wi-Fi and some hotels and offices block devices from talking to each other ("client isolation"); use a hotspot from your phone instead. Check the firewall allowed Drop on private networks.
 - **Wrong network picked.** **Devices → Share over** lets you choose, and Drop follows you if the connection changes.
-- **Typing the address:** under **Devices → Add by address** you can type the other device's address, shown on its Devices screen (for example `192.168.1.20:8765`).
+- **Typing the address:** under **Devices → Add by address** you can type the other device's address, shown at the bottom of its Devices screen (for example `192.168.1.20:47865`).
 - **Connecting failed with "code didn't match".** Nothing was connected. Start again and type the new code carefully.
 
 ## Build from source
