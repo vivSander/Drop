@@ -96,20 +96,17 @@ h1 i{font-style:normal;color:var(--line);font-weight:400}
 .veil-in{display:flex;flex-direction:column;margin-left:calc(248px + clamp(16px,3vw,44px));min-width:0;max-width:calc(100vw - 300px)}
 .veil-in span{font-size:clamp(18px,2.4vw,28px);font-weight:650}
 .veil-in b{font-size:clamp(48px,11vw,152px);line-height:.95;letter-spacing:-.055em;font-weight:820;overflow-wrap:anywhere}
-.selbar{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:20;display:flex;align-items:center;gap:2px;flex-wrap:wrap;justify-content:center;max-width:calc(100vw - 24px);background:var(--ink);color:var(--bg);padding:7px 8px 7px 18px;border-radius:26px;box-shadow:0 14px 44px rgba(10,12,30,.38);animation:rise .18s ease-out}
+.selbar{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:20;display:flex;align-items:center;gap:2px;max-width:calc(100vw - 20px);background:var(--panel);color:var(--ink);border:1px solid var(--line);padding:6px;border-radius:20px;box-shadow:0 18px 50px rgba(0,0,0,.55);animation:rise .18s ease-out}
 .selbar[hidden]{display:none}
-.selbar b{margin-right:8px;font-weight:650;white-space:nowrap}
-.sb{display:inline-flex;gap:6px;align-items:center;background:transparent;color:inherit;border:0;padding:9px 12px;border-radius:999px;font-weight:600;font-size:14px;cursor:pointer}
-.sb:hover{background:color-mix(in srgb,currentColor 16%,transparent)}.sb.del{color:var(--del)}
-@keyframes rise{from{transform:translate(-50%,14px);opacity:0}}
-.tray{position:fixed;right:20px;bottom:20px;width:300px;z-index:19;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:14px 16px;box-shadow:0 14px 40px rgba(10,12,30,.22)}
-.tray[hidden]{display:none}
-.t-top{display:flex;justify-content:space-between;gap:10px;font-size:14px}.t-top span{color:var(--quiet);font-size:13px}
-.bar{height:6px;border-radius:3px;background:var(--line);overflow:hidden;margin:10px 0 8px}.bar i{display:block;height:100%;background:var(--acc);transition:width .15s}
-.t-it{font-size:12.5px;color:var(--quiet);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sel-n{min-width:30px;height:30px;padding:0 9px;margin-left:2px;border-radius:999px;background:var(--acc);color:var(--acc-ink);display:grid;place-items:center;font-weight:800;font-size:14px}
+.selbar b{margin:0 8px 0 8px;font-weight:600;color:var(--quiet);white-space:nowrap;font-size:14px}
+.selbar .sep{width:1px;height:22px;background:var(--line);margin:0 6px;flex:none}
+.sb{display:inline-flex;gap:7px;align-items:center;background:transparent;color:var(--ink);border:0;padding:9px 12px;border-radius:12px;font-weight:600;font-size:14px;cursor:pointer;white-space:nowrap}
+.sb:hover{background:var(--acc-soft)}.sb.del{color:#FF7A8C}.sb.del:hover{background:rgba(255,92,110,.14)}
+@media(max-width:560px){.selbar b{display:none}.sb{font-size:0;gap:0;padding:10px 11px}.selbar .sep{margin:0 3px}}
 .toasts{position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:40;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none;width:max-content;max-width:calc(100vw - 24px)}
-.toast{background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:14px;font-weight:550;box-shadow:0 8px 28px rgba(10,12,30,.3)}
-.toast.bad{background:var(--danger);color:#fff}
+.toast{background:var(--panel);color:var(--ink);border:1px solid var(--line);padding:10px 16px;border-radius:14px;font-size:14px;font-weight:550;box-shadow:0 10px 32px rgba(0,0,0,.5)}
+.toast.bad{background:var(--danger);border-color:transparent;color:#fff}
 #off{position:fixed;top:0;left:0;right:0;z-index:50;background:var(--danger);color:#fff;text-align:center;padding:7px;font-size:13.5px;font-weight:600}
 #off[hidden]{display:none}
 dialog{border:0;border-radius:20px;padding:0;background:var(--panel);color:var(--ink);width:min(440px,92vw);box-shadow:0 30px 80px rgba(8,10,28,.45)}
@@ -406,19 +403,21 @@ function updateSel(){
   document.body.classList.toggle('selmode',selected.size>0);
   const b=$('#selbar'),n=selected.size;b.hidden=!n;if(!n)return;
   if(R){
-    put(b,h('b',{},n+' selected'),
-      h('button',{class:'sb',onclick:rDownload},icon('download',17),'Download'),
-      h('button',{class:'sb',onclick:rKeep},icon('folder',17),'Keep in Drop'),
-      h('button',{class:'sb',title:'Clear selection',onclick:()=>{selected.clear();updateSel()}},icon('x',17)));
+    put(b,h('span',{class:'sel-n'},String(n)),h('b',{},'selected'),
+      h('button',{class:'sb',title:'Download',onclick:rDownload},icon('download',18),'Download'),
+      h('button',{class:'sb',title:'Keep in Drop',onclick:rKeep},icon('folder',18),'Keep'),
+      h('span',{class:'sep'}),
+      h('button',{class:'sb',title:'Clear selection','aria-label':'Clear selection',onclick:()=>{selected.clear();updateSel()}},icon('x',18)));
     return;
   }
-  put(b,h('b',{},n+' selected'),
-    h('button',{class:'sb',onclick:dlSel},icon('download',17),'Download'),
-    peers.length>0&&h('button',{class:'sb',onclick:sendSel},icon('send',17),'Send'),
-    h('button',{class:'sb',onclick:moveSel},icon('move',17),'Move'),
-    n===1&&h('button',{class:'sb',onclick:renameSel},icon('edit',17),'Rename'),
-    h('button',{class:'sb del',onclick:delSel},icon('trash',17),'Delete'),
-    h('button',{class:'sb',title:'Clear selection',onclick:()=>{selected.clear();updateSel()}},icon('x',17)));
+  put(b,h('span',{class:'sel-n'},String(n)),h('b',{},'selected'),
+    h('button',{class:'sb',title:'Download',onclick:dlSel},icon('download',18),'Download'),
+    peers.length>0&&h('button',{class:'sb',title:'Send',onclick:sendSel},icon('send',18),'Send'),
+    h('button',{class:'sb',title:'Move',onclick:moveSel},icon('move',18),'Move'),
+    n===1&&h('button',{class:'sb',title:'Rename',onclick:renameSel},icon('edit',18),'Rename'),
+    h('button',{class:'sb del',title:'Delete',onclick:delSel},icon('trash',18),'Delete'),
+    h('span',{class:'sep'}),
+    h('button',{class:'sb',title:'Clear selection','aria-label':'Clear selection',onclick:()=>{selected.clear();updateSel()}},icon('x',18)));
 }
 function dlSel(){
   const ps=[...selected];
