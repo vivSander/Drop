@@ -189,7 +189,23 @@ body:has(.selbar:not([hidden])) .sendfab{bottom:90px}
 .devstrip{display:none;gap:8px;overflow-x:auto;margin:0 0 18px;padding-bottom:4px}
 .devstrip .dev{flex:0 0 auto;border:1px solid var(--line);background:var(--panel)}
 .devstrip .dev.ok{border-color:var(--acc)}
-@media(max-width:820px){.devstrip{display:flex}body.remote .devstrip{display:none}}
+@media(max-width:820px){.devstrip{display:none}}
+.side,.devstrip{display:none!important}.app,body.native .app{grid-template-columns:minmax(0,1fr)}
+.homedevs{display:flex;flex-direction:column;gap:10px;max-width:640px}
+.homedevs .dev{background:var(--panel);border:1px solid var(--line);padding:16px 18px;gap:14px;border-radius:16px}
+.homedevs .dev.ok{border-color:var(--acc)}.homedevs .dev .dm b{font-size:17px}.homedevs .dev .dm span{font-size:14px;margin-top:2px}
+.dev .dm span.blink{color:var(--acc);font-weight:650;animation:blink 1s ease-in-out infinite}
+@keyframes blink{50%{opacity:.2}}
+.dev{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;transition:transform .15s}.dev.pressing{transform:scale(.97)}
+@media(hover:none){.dev .rm{display:none}}html.phone .dev .rm{display:none}
+dialog.ctx{position:fixed;inset:0;width:100%;height:100%;max-width:none;max-height:none;margin:0;padding:0;border:0;overflow:hidden;background:rgba(6,8,20,.45);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);color:#fff}
+dialog.ctx::backdrop{background:none}
+dialog.ctx .dev{position:fixed;margin:0;transform:scale(1.02);box-shadow:0 18px 50px rgba(0,0,0,.5);animation:lift .18s ease-out}
+@keyframes lift{from{transform:scale(1)}}
+.ctx-menu{position:fixed;width:236px;background:rgba(44,48,74,.86);-webkit-backdrop-filter:blur(30px) saturate(1.6);backdrop-filter:blur(30px) saturate(1.6);border-radius:16px;overflow:hidden;box-shadow:0 14px 44px rgba(0,0,0,.5);animation:ctxin .2s cubic-bezier(.2,.9,.3,1.15);transform-origin:top right}
+@keyframes ctxin{from{opacity:0;transform:scale(.85)}}
+.ctx-it{display:flex;align-items:center;justify-content:space-between;width:100%;border:0;background:none;color:#fff;font:inherit;font-size:17px;padding:14px 18px;text-align:left;cursor:pointer}
+.ctx-it+.ctx-it{border-top:1px solid rgba(255,255,255,.12)}.ctx-it:active{background:rgba(255,255,255,.14)}.ctx-it.danger{color:#FF5C57}
 @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 .dev{position:relative}
 .dev .rm{margin-left:auto;border:0;background:none;color:var(--quiet);width:28px;height:28px;border-radius:8px;display:grid;place-items:center;cursor:pointer;flex:0 0 auto}
@@ -314,27 +330,14 @@ window.addEventListener('hashchange',route);
 /* ---------- render ---------- */
 function crumb(label,path){const a=h('a',{class:'crumb',href:hashOf(path)},label);dropTarget(a,()=>path);return a}
 function render(){
-  document.title=(cwd?base(cwd)+' - ':'')+'Drop';
-  const cr=$('#crumbs');cr.replaceChildren(crumb('Drop',''));
-  let acc='';for(const s of (cwd?cwd.split('/'):[])){acc=join(acc,s);cr.append(h('i',{},'/'),crumb(s,acc))}
+  document.title='Drop';
+  const cr=$('#crumbs');cr.replaceChildren(h('span',{class:'crumb'},'Drop'));
   const tools=$('#tools');
   put(tools,
     h('button',{class:'btn pri',onclick:()=>$('#fpick').click()},icon('upload'),'Add files'),
-    h('button',{class:'btn',title:'Nearby devices and network',onclick:openDevices},icon('phone'),'Devices',h('span',{class:'cnt',id:'devcnt',hidden:!peers.length},String(peers.length))),
-    h('button',{class:'btn',title:'Change sort order',onclick:()=>{sortBy=sortBy==='name'?'new':'name';LS.set('sort',sortBy);render()}},icon('sort'),sortBy==='name'?'Name':'Newest'),
-    h('button',{class:'btn',title:'Switch view',onclick:()=>{view=view==='grid'?'list':'grid';LS.set('view',view);render()}},icon(view==='grid'?'list':'grid')));
-  const c=$('#content');c.replaceChildren();
-  c.className=view==='list'?'list':'';
-  const dirs=entries.filter(e=>e.dir).sort((a,b)=>a.name.localeCompare(b.name,undefined,{numeric:true,sensitivity:'base'}));
-  const files=entries.filter(e=>!e.dir).sort(sortBy==='new'?(a,b)=>b.t-a.t:(a,b)=>a.name.localeCompare(b.name,undefined,{numeric:true,sensitivity:'base'}));
-  if(!dirs.length&&!files.length){
-    const touch=matchMedia('(hover:none)').matches;
-    c.append(h('div',{class:'empty'},h('b',{},cwd?'This folder is empty':'Nothing here yet'),
-      h('p',{},touch?'Tap Add files. Whatever you add is sent to your connected devices automatically.':'Drop files or whole folders anywhere on this page, or use Add files. They are sent to your connected devices automatically.')));
-  }else{
-    if(dirs.length)c.append(h('div',{class:'sec dirs'},dirs.map(dirTile)));
-    if(files.length)c.append(h('div',{class:'sec files'},files.map(fileTile)));
-  }
+    h('button',{class:'btn',title:'Nearby devices and network',onclick:openDevices},icon('phone'),'Devices',h('span',{class:'cnt',id:'devcnt',hidden:!peers.length},String(peers.length))));
+  const c=$('#content');c.replaceChildren();c.className='';
+  c.append(h('div',{class:'homedevs',id:'home'}));homeSig='';renderHome();
   updateSel();
 }
 function chk(p){return h('span',{class:'chk',role:'checkbox',title:'Select',onclick:ev=>{ev.stopPropagation();toggle(p)}},icon('check',15))}
@@ -569,7 +572,7 @@ async function refreshPeers(){
     if(autoSeen!==null&&d.autoSent>autoSeen){const n=d.autoSent-autoSeen;toast(n===1?'Sent '+d.autoLast.split('/').pop()+' to your devices':'Sent '+n+' files to your devices')}
     autoSeen=d.autoSent;
     me=d.me;peers=d.peers;incoming=d.incoming;netinfo=d.net;headless=d.headless;
-    if(recvSeen!==null&&d.received>recvSeen){toast('Received files'+(d.lastFrom?' from '+d.lastFrom:''));refresh(true)}
+    if(recvSeen!==null&&d.received>recvSeen){refresh(true)}
     recvSeen=d.received;
     if(pairingFor){
       const p=peers.find(x=>x.id===pairingFor.id);
@@ -579,12 +582,47 @@ async function refreshPeers(){
     renderDevices();showIncoming();
   }catch(e){}
 }
+let homeSig='';
+const justGot=p=>p.state==='paired'&&!p.offline&&p.recvAge>=0&&p.recvAge<15;
+function renderHome(){
+  const hm=$('#home');if(!hm)return;
+  const sig=JSON.stringify([peers.map(p=>[p.id,p.name,p.state,!!p.offline,p.code||'',justGot(p)]),netinfo.error,netinfo.ip,netinfo.cur]);
+  if(sig===homeSig)return;homeSig=sig;
+  const msg=netinfo.error||(netinfo.ip?'Looking for devices on '+netinfo.cur+'. Open Drop on your other device.':'Not connected to a network.');
+  put(hm,peers.length?peers.map(devRow):h('div',{class:'empty'},h('b',{},'No devices yet'),h('p',{},msg)));
+}
+function longPress(el,fn){
+  let t=null,x=0,y=0,fired=false;
+  const cancel=()=>{clearTimeout(t);el.classList.remove('pressing')};
+  el.addEventListener('pointerdown',e=>{if(e.pointerType==='mouse')return;x=e.clientX;y=e.clientY;fired=false;el.classList.add('pressing');
+    t=setTimeout(()=>{fired=true;el.classList.remove('pressing');try{navigator.vibrate&&navigator.vibrate(14)}catch(_){}fn()},450)});
+  el.addEventListener('pointermove',e=>{if(Math.abs(e.clientX-x)>8||Math.abs(e.clientY-y)>8)cancel()});
+  ['pointerup','pointercancel','pointerleave'].forEach(n=>el.addEventListener(n,cancel));
+  el.addEventListener('click',e=>{if(fired){fired=false;e.stopImmediatePropagation();e.preventDefault()}},true);
+  el.addEventListener('contextmenu',e=>e.preventDefault());
+}
+function ctxMenu(row,items){
+  const r=row.getBoundingClientRect(),dg=h('dialog',{class:'ctx'});
+  const clone=row.cloneNode(true);clone.classList.remove('pressing');clone.querySelectorAll('.rm').forEach(n=>n.remove());
+  clone.style.left=r.left+'px';clone.style.top=r.top+'px';clone.style.width=r.width+'px';
+  const menu=h('div',{class:'ctx-menu',role:'menu'},items.map(it=>h('button',{class:'ctx-it'+(it.danger?' danger':''),role:'menuitem',onclick:()=>{dg.close();it.run()}},it.label,icon(it.icon,20))));
+  dg.append(clone,menu);document.body.append(dg);
+  const mh=items.length*50,room=innerHeight-r.bottom;
+  menu.style.left=Math.max(12,Math.min(r.right-236,innerWidth-248))+'px';
+  if(room>mh+24)menu.style.top=(r.bottom+10)+'px';else{menu.style.top=Math.max(12,r.top-mh-10)+'px';menu.style.transformOrigin='bottom right'}
+  let armed=false;dg.addEventListener('pointerdown',()=>{armed=true});
+  dg.addEventListener('click',e=>{if(armed&&!e.target.closest('.ctx-menu'))dg.close()});
+  dg.addEventListener('close',()=>dg.remove());
+  dg.showModal();
+}
 function devRow(p){
-  const sub=p.state==='paired'?(p.offline?'Not on this network now':'Tap to see its files'):p.state==='waiting'?'Type '+p.code.slice(0,3)+' '+p.code.slice(3)+' on '+p.name:p.state==='denied'?'Declined. Tap to ask again':p.state==='mismatch'?'Wrong code. Tap to try again':p.state==='timeout'?'No answer. Tap to retry':'Tap to connect';
+  const got=justGot(p);
+  const sub=p.state==='paired'?(p.offline?'Not on this network now':got?'Received':'Tap to see its files'):p.state==='waiting'?'Type '+p.code.slice(0,3)+' '+p.code.slice(3)+' on '+p.name:p.state==='denied'?'Declined. Tap to ask again':p.state==='mismatch'?'Wrong code. Tap to try again':p.state==='timeout'?'No answer. Tap to retry':'Tap to connect';
   const row=h('div',{class:'dev'+(p.state==='paired'?' ok':''),tabindex:'0',role:'button',onclick:()=>devClick(p),onkeydown:ev=>{if(ev.key==='Enter')devClick(p)}},
-    icon('phone',20),h('div',{class:'dm'},h('b',{},p.name),h('span',{},sub)),
+    icon('phone',20),h('div',{class:'dm'},h('b',{},p.name),got?h('span',{class:'blink',style:'animation-delay:-'+(Date.now()%1000)+'ms'},sub):h('span',{},sub)),
     p.state!=='new'&&h('button',{class:'rm',title:'Remove '+p.name,'aria-label':'Remove '+p.name,onclick:ev=>{ev.stopPropagation();removeDevice(p)}},icon('x',15)));
   if(p.state==='paired'&&!p.offline)dropTarget(row,()=>p.name,deviceDrop(p));
+  if(p.state!=='new'&&(isPhone||matchMedia('(hover:none)').matches))longPress(row,()=>ctxMenu(row,[{label:'Remove',icon:'trash',danger:true,run:()=>removeDevice(p)}]));
   return row;
 }
 function renderDevices(){
@@ -594,7 +632,7 @@ function renderDevices(){
   put(box,h('h3',{},'Devices',h('button',{class:'btn ghost',style:'padding:4px 8px;font-size:13px',onclick:openDevices},'Manage')),rows.length?rows:h('div',{class:'devnone'},msg));
   const c=$('#devcnt');if(c){c.textContent=peers.length;c.hidden=!peers.length}
   const dl=$('#dl');if(dl)put(dl,peers.length?peers.map(devRow):[h('div',{class:'devnone'},msg)]);
-  const st=$('#devstrip');if(st)put(st,peers.map(devRow));
+  renderHome();
   const ns=$('#ns');
   if(ns){const sig=JSON.stringify([netinfo.ifaces,netinfo.cur,netinfo.error]);if(sig!==netSig){netSig=sig;buildNet(ns)}}
 }

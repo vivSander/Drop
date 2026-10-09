@@ -44,13 +44,14 @@ func (a *App) apiPeers(w http.ResponseWriter, r *http.Request) {
 		State string `json:"state"`
 		Code  string `json:"code,omitempty"`
 		Off   bool   `json:"offline,omitempty"`
+		Recv  int    `json:"recvAge"` // seconds since this device last sent us a file, -1 if never
 	}
 	list := []PeerOut{}
 	for id, p := range a.peers {
 		if !p.Manual && time.Since(p.Seen) > 8*time.Second {
 			continue
 		}
-		po := PeerOut{ID: id, Name: p.Name, State: "new"}
+		po := PeerOut{ID: id, Name: p.Name, State: "new", Recv: a.recvAge(id)}
 		if k := a.cfg.Out[id]; k != nil {
 			po.State = "paired"
 		} else if j := a.jobs[id]; j != nil {
@@ -66,7 +67,7 @@ func (a *App) apiPeers(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 		if !seen {
-			list = append(list, PeerOut{ID: id, Name: k.Name, State: "paired", Off: true})
+			list = append(list, PeerOut{ID: id, Name: k.Name, State: "paired", Off: true, Recv: a.recvAge(id)})
 		}
 	}
 	sort.Slice(list, func(i, j int) bool { return strings.ToLower(list[i].Name) < strings.ToLower(list[j].Name) })
@@ -490,6 +491,10 @@ func (a *App) peerReceive(w http.ResponseWriter, r *http.Request) {
 	a.mu.Lock()
 	a.received++
 	a.lastFrom = t.Name
+	if a.recvAt == nil {
+		a.recvAt = map[string]time.Time{}
+	}
+	a.recvAt[id] = time.Now()
 	a.mu.Unlock()
 	writeJSON(w, 201, map[string]bool{"ok": true})
 }
@@ -703,4 +708,13 @@ func (a *App) apiAuto(w http.ResponseWriter, r *http.Request) {
 	a.saveLocked()
 	a.mu.Unlock()
 	writeJSON(w, 200, map[string]bool{"ok": true})
+}
+
+// recvAge says how many seconds ago the device last sent a file (call with a.mu held); -1 if never.
+func (a *App) recvAge(id string) int {
+	t, ok := a.recvAt[id]
+	if !ok {
+		return -1
+	}
+	return int(time.Since(t).Seconds())
 }

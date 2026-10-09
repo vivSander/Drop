@@ -97,6 +97,7 @@ type App struct {
 	inflight map[string]bool
 	received int
 	lastFrom string
+	recvAt   map[string]time.Time
 	thumbSem chan struct{}
 	tlsCert  tls.Certificate
 	fp       string
