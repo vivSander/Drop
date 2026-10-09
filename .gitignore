@@ -1,0 +1,11 @@
+# NEVER commit signing keys or settings
+*.pem
+*.key
+*.jks
+*.keystore
+config.json
+/dist/
+/build/
+/out/
+android/out/
+android/lib/

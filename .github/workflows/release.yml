@@ -1,0 +1,62 @@
+name: Release
+# Push a tag such as v1.0.0 (or run this workflow by hand) to build every download and publish a GitHub release.
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:        # or: Actions tab > Release > Run workflow, and type a tag such as v1.0.0
+    inputs:
+      tag:
+        description: "Version tag to create, for example v1.0.0"
+        required: true
+permissions:
+  contents: write
+  id-token: write       # for build provenance
+  attestations: write
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      TAG: ${{ inputs.tag || github.ref_name }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - run: go vet ./... && go test -race ./...
+      - name: Computer apps
+        run: VERSION="${TAG#v}" python3 scripts/package.py
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: android-actions/setup-android@v3
+      - name: Android app
+        continue-on-error: true   # the computer apps are still published if this step fails
+        env:
+          KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+        run: |
+          sdkmanager "platforms;android-33" "build-tools;34.0.0" >/dev/null
+          if [ -n "$KEYSTORE_B64" ]; then
+            echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/release.jks"
+            export KEYSTORE_FILE="$RUNNER_TEMP/release.jks" KEYSTORE_PASS KEY_ALIAS
+          else
+            echo "::warning::No ANDROID_KEYSTORE_BASE64 secret: the APK is signed with a throw-away key and cannot be updated in place."
+          fi
+          VERSION_NAME="${TAG#v}" android/build.sh
+          cp android/out/Drop.apk dist/Drop.apk
+      - name: Checksums
+        working-directory: dist
+        run: sha256sum Drop-*.zip Drop-*.tar.gz $(ls Drop.apk 2>/dev/null) > SHA256SUMS.txt
+      - uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: |
+            dist/Drop-*.zip
+            dist/Drop-*.tar.gz
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$TAG" --target "$GITHUB_SHA" --title "Drop $TAG" --generate-notes \
+            $(ls dist/Drop.apk 2>/dev/null) dist/Drop-*.zip dist/Drop-*.tar.gz dist/SHA256SUMS.txt
