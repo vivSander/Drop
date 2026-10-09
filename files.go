@@ -408,6 +408,7 @@ func (a *App) apiDelete(w http.ResponseWriter, r *http.Request) {
 	var q struct{ Paths []string }
 	_ = readJSON(r, &q)
 	n := 0
+	var gone []string
 	for _, s := range q.Paths {
 		full, err := a.resolve(s, false)
 		if err != nil || full == a.root {
@@ -421,6 +422,10 @@ func (a *App) apiDelete(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		n++
+		gone = append(gone, a.rel(full))
+	}
+	if len(gone) > 0 {
+		go a.removeOnDevices(gone)
 	}
 	writeJSON(w, 200, map[string]int{"deleted": n})
 }

@@ -722,3 +722,51 @@ func (a *App) recvAge(id string) int {
 	}
 	return int(time.Since(t).Seconds())
 }
+
+// peerRemove deletes something this device received from the caller (it was deleted on the sender).
+func (a *App) peerRemove(w http.ResponseWriter, r *http.Request) {
+	id, key := r.Header.Get("X-Drop-Id"), r.Header.Get("X-Drop-Key")
+	a.mu.Lock()
+	t := a.cfg.Trusted[id]
+	a.mu.Unlock()
+	if t == nil || subtle.ConstantTimeCompare([]byte(t.Key), []byte(key)) != 1 {
+		apiErr(w, 403, "Not connected. Connect this device first.")
+		return
+	}
+	folder := cleanDisplay(t.Name)
+	full, err := a.resolve(filepath.ToSlash(filepath.Join(folder, r.PathValue("path"))), true)
+	home, err2 := a.resolve(folder, true)
+	if err != nil || err2 != nil || full == home || !within(home, full) {
+		apiErr(w, 400, "Invalid path")
+		return
+	}
+	_ = os.RemoveAll(full)
+	writeJSON(w, 200, map[string]bool{"ok": true})
+}
+
+// removeOnDevices tells the connected devices to delete what was sent to them and then deleted here.
+func (a *App) removeOnDevices(rels []string) {
+	a.mu.Lock()
+	ids := make([]string, 0, len(a.cfg.Out))
+	for id := range a.cfg.Out {
+		ids = append(ids, id)
+	}
+	a.mu.Unlock()
+	for _, id := range ids {
+		base, key, cl, _, err := a.target(id)
+		if err != nil {
+			continue
+		}
+		for _, rel := range rels {
+			req, err := http.NewRequest("DELETE", base+"/peer/send/"+(&url.URL{Path: rel}).EscapedPath(), http.NoBody)
+			if err != nil {
+				continue
+			}
+			req.Header.Set("X-Drop-Id", a.cfg.ID)
+			req.Header.Set("X-Drop-Key", key)
+			if resp, err := cl.Do(req); err == nil {
+				resp.Body.Close()
+			}
+		}
+	}
+}

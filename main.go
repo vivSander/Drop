@@ -623,6 +623,7 @@ func (a *App) peerRouter() http.Handler {
 	m.HandleFunc("POST /peer/pair", a.peerPair)
 	m.HandleFunc("POST /peer/pair/confirm", a.peerPairConfirm)
 	m.HandleFunc("PUT /peer/send/{path...}", a.peerReceive)
+	m.HandleFunc("DELETE /peer/send/{path...}", a.peerRemove)
 	m.HandleFunc("POST /peer/forget", a.peerAuth(a.peerForget))
 	m.HandleFunc("GET /peer/ls", a.peerAuth(a.apiLs))
 	m.HandleFunc("GET /peer/f/{path...}", a.peerAuth(a.getFile))

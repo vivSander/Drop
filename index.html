@@ -265,7 +265,7 @@ const fp=p=>p.split('/').map(encodeURIComponent).join('/');
 const join=(a,b)=>a?a+'/'+b:b;
 const parent=p=>p.includes('/')?p.slice(0,p.lastIndexOf('/')):'';
 const base=p=>p.slice(p.lastIndexOf('/')+1);
-const hashOf=p=>'#/'+fp(p);
+const hashOf=p=>'#/sent'+(p?'/'+fp(p):'');
 const fmt=n=>n<1e3?n+' B':n<1e6?Math.round(n/1e3)+' KB':n<1e9?(n/1e6).toFixed(1)+' MB':(n/1e9).toFixed(2)+' GB';
 const ago=t=>{const s=Date.now()/1000-t;if(s<45)return 'just now';if(s<3600)return Math.round(s/60)+' min ago';if(s<86400)return Math.round(s/3600)+' h ago';return new Date(t*1000).toLocaleDateString(undefined,{day:'numeric',month:'short',year:'numeric'})};
 const ext=n=>{const i=n.lastIndexOf('.');return i>0?n.slice(i+1).toLowerCase():''};
@@ -313,31 +313,55 @@ async function refresh(force){
     if(!R)for(const p of [...selected])if(!entries.some(e=>join(cwd,e.name)===p))selected.delete(p);
     render();renderTree();
   }catch(e){
-    if(e.status===404&&cwd){toast('That folder no longer exists');location.hash='#/'}
+    if(e.status===404&&cwd){toast('That folder no longer exists');location.hash='#/sent'}
     else if(e.status===403)document.body.textContent='Open the full link shown on your computer.';
   }
 }
-let R=null;
+let R=null,sentMode=false;
 const segs=()=>location.hash.replace(/^#\/?/,'').split('/').filter(Boolean).map(decodeURIComponent);
 const rhash=(id,p)=>'#/@'+encodeURIComponent(id)+(p?'/'+fp(p):'');
 function route(){
   const s=segs();selected.clear();last='';
   if(s[0]&&s[0][0]==='@'){remoteGo(s[0].slice(1),s.slice(1).join('/'));return}
-  R=null;document.body.classList.remove('remote');cwd=s.join('/');refresh(true);
+  R=null;document.body.classList.remove('remote');
+  sentMode=s[0]==='sent';cwd=sentMode?s.slice(1).join('/'):'';refresh(true);
 }
 window.addEventListener('hashchange',route);
 
 /* ---------- render ---------- */
 function crumb(label,path){const a=h('a',{class:'crumb',href:hashOf(path)},label);dropTarget(a,()=>path);return a}
 function render(){
+  if(sentMode)return renderSent();
   document.title='Drop';
   const cr=$('#crumbs');cr.replaceChildren(h('span',{class:'crumb'},'Drop'));
   const tools=$('#tools');
   put(tools,
     h('button',{class:'btn pri',onclick:()=>$('#fpick').click()},icon('upload'),'Add files'),
-    h('button',{class:'btn',title:'Nearby devices and network',onclick:openDevices},icon('phone'),'Devices',h('span',{class:'cnt',id:'devcnt',hidden:!peers.length},String(peers.length))));
+    h('button',{class:'btn',title:'Nearby devices and network',onclick:openDevices},icon('phone'),'Devices',h('span',{class:'cnt',id:'devcnt',hidden:!peers.length},String(peers.length))),
+    h('button',{class:'btn',title:'What you have sent',onclick:()=>{location.hash='#/sent'}},icon('send'),'Sent'));
   const c=$('#content');c.replaceChildren();c.className='';
   c.append(h('div',{class:'homedevs',id:'home'}));homeSig='';renderHome();
+  updateSel();
+}
+function renderSent(){
+  document.title='Sent - Drop';
+  const cr=$('#crumbs');cr.replaceChildren(crumb('Sent',''));
+  let acc='';for(const s of (cwd?cwd.split('/'):[])){acc=join(acc,s);cr.append(h('i',{},'/'),crumb(s,acc))}
+  put($('#tools'),
+    h('button',{class:'btn',onclick:()=>{location.hash=cwd?hashOf(parent(cwd)):'#/'}},icon('left'),'Back'),
+    h('button',{class:'btn pri',onclick:()=>$('#fpick').click()},icon('upload'),'Add files'),
+    h('button',{class:'btn',title:'Change sort order',onclick:()=>{sortBy=sortBy==='name'?'new':'name';LS.set('sort',sortBy);render()}},icon('sort'),sortBy==='name'?'Name':'Newest'),
+    h('button',{class:'btn',title:'Switch view',onclick:()=>{view=view==='grid'?'list':'grid';LS.set('view',view);render()}},icon(view==='grid'?'list':'grid')));
+  const c=$('#content');c.replaceChildren();c.className=view==='list'?'list':'';
+  const inbox=new Set(peers.map(p=>p.name));
+  const shown=entries.filter(e=>cwd||!(e.dir&&inbox.has(e.name)));
+  const dirs=shown.filter(e=>e.dir).sort((a,b)=>a.name.localeCompare(b.name,undefined,{numeric:true,sensitivity:'base'}));
+  const files=shown.filter(e=>!e.dir).sort(sortBy==='new'?(a,b)=>b.t-a.t:(a,b)=>a.name.localeCompare(b.name,undefined,{numeric:true,sensitivity:'base'}));
+  if(!dirs.length&&!files.length)c.append(h('div',{class:'empty'},h('b',{},'Nothing sent yet'),h('p',{},'Files you add are sent to your connected devices and listed here. Select a file to delete it here and on the devices it was sent to.')));
+  else{
+    if(dirs.length)c.append(h('div',{class:'sec dirs'},dirs.map(dirTile)));
+    if(files.length)c.append(h('div',{class:'sec files'},files.map(fileTile)));
+  }
   updateSel();
 }
 function chk(p){return h('span',{class:'chk',role:'checkbox',title:'Select',onclick:ev=>{ev.stopPropagation();toggle(p)}},icon('check',15))}
@@ -408,7 +432,7 @@ async function renameSel(){
 }
 async function delSel(){
   const ps=[...selected];
-  const ok=await ask({title:'Delete '+ps.length+(ps.length===1?' item?':' items?'),text:'Folders are deleted with everything inside them. This can’t be undone.',ok:'Delete',danger:true});
+  const ok=await ask({title:'Delete '+ps.length+(ps.length===1?' item?':' items?'),text:'Folders are deleted with everything inside them. They are also deleted on the devices they were sent to. This can’t be undone.',ok:'Delete',danger:true});
   if(!ok)return;
   try{await api('/api/delete',{paths:ps});selected.clear();toast('Deleted');refresh(true)}catch(e){fail(e)}
 }
@@ -562,7 +586,7 @@ document.addEventListener('keydown',e=>{
 
 /* ---------- phone + text ---------- */
 /* ---------- devices ---------- */
-let me={id:'',name:''},peers=[],incoming=[],netinfo={ifaces:[],cur:'',ip:'',port:0,error:''},headless=false,autoOn=true,autoSeen=null,recvSeen=null,netSig='',sendTarget=null,pairingFor=null;
+let nameSig='',me={id:'',name:''},peers=[],incoming=[],netinfo={ifaces:[],cur:'',ip:'',port:0,error:''},headless=false,autoOn=true,autoSeen=null,recvSeen=null,netSig='',sendTarget=null,pairingFor=null;
 const askedIncoming=new Set();
 const netLabel=i=>i.name+' ('+i.ip+')';
 async function refreshPeers(){
@@ -572,6 +596,7 @@ async function refreshPeers(){
     if(autoSeen!==null&&d.autoSent>autoSeen){const n=d.autoSent-autoSeen;toast(n===1?'Sent '+d.autoLast.split('/').pop()+' to your devices':'Sent '+n+' files to your devices')}
     autoSeen=d.autoSent;
     me=d.me;peers=d.peers;incoming=d.incoming;netinfo=d.net;headless=d.headless;
+    {const ns=peers.map(p=>p.name).join('|');if(ns!==nameSig){nameSig=ns;if(sentMode)render()}}
     if(recvSeen!==null&&d.received>recvSeen){refresh(true)}
     recvSeen=d.received;
     if(pairingFor){
