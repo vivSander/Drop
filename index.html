@@ -3,7 +3,7 @@
 <meta name="theme-color" content="#9088FF">
 <title>Drop</title>
 <style>
-:root{--bg:#0E1120;--panel:#171B2F;--ink:#ECEEF8;--quiet:#8D94AE;--line:#2A3050;--acc:#9088FF;--acc-ink:#0E1120;--acc-soft:#25295A;--sig:#D8F34B;--sig-ink:#182000;--danger:#D6314A;--del:#C4203D;
+:root{--bg:#0E1120;--panel:#171B2F;--ink:#FFFFFF;--quiet:#8D94AE;--line:#2A3050;--acc:#9088FF;--acc-ink:#0E1120;--acc-soft:#25295A;--sig:#D8F34B;--sig-ink:#182000;--danger:#D6314A;--del:#C4203D;
 --font:"Avenir Next","Segoe UI Variable Display","Segoe UI",system-ui,-apple-system,Roboto,"Helvetica Neue",sans-serif}
 *{box-sizing:border-box}
 html{color-scheme:dark}
@@ -16,13 +16,17 @@ button,input,textarea{font:inherit;color:inherit}
 .wc{display:flex;align-self:stretch;margin-right:-18px}.wc[hidden]{display:none}
 .wc button{width:48px;border:0;background:transparent;color:#000;display:grid;place-items:center;cursor:default;padding:0}
 .wc button svg{width:10px;height:10px;stroke-width:1}.wc button:hover{background:rgba(0,0,0,.14)}.wc button.x:hover{background:#E81123;color:#fff}
-body.native .top{user-select:none;-webkit-user-select:none}
+body.native .top{user-select:none;-webkit-user-select:none;background:var(--bg);color:#fff;height:36px;padding:0 18px}
+body.native .top>svg,body.native .top>b{display:none}
+body.native .wc button{color:#fff;height:36px}body.native .wc button:hover{background:rgba(255,255,255,.12)}body.native .wc button.x:hover{background:#E81123}
+body.native .side{top:36px;height:calc(100dvh - 36px)}
+html.native-win,html.native-win body{background:var(--bg)}
 .rz{position:fixed;z-index:50;display:none}body.native .rz{display:block}
 .rz[data-e=n]{top:0;left:8px;right:8px;height:5px;cursor:ns-resize}.rz[data-e=s]{bottom:0;left:8px;right:8px;height:5px;cursor:ns-resize}
 .rz[data-e=e]{right:0;top:8px;bottom:8px;width:5px;cursor:ew-resize}.rz[data-e=w]{left:0;top:8px;bottom:8px;width:5px;cursor:ew-resize}
 .rz[data-e=ne]{top:0;right:0;width:8px;height:8px;cursor:nesw-resize}.rz[data-e=sw]{bottom:0;left:0;width:8px;height:8px;cursor:nesw-resize}
 .rz[data-e=nw]{top:0;left:0;width:8px;height:8px;cursor:nwse-resize}.rz[data-e=se]{bottom:0;right:0;width:8px;height:8px;cursor:nwse-resize}
-body.native::after{content:"";position:fixed;inset:0;border:1px solid var(--acc);pointer-events:none;z-index:60}
+body.native::after{content:"";position:fixed;inset:0;border:1px solid var(--line);border-radius:8px;pointer-events:none;z-index:60}
 .top svg{width:26px;height:26px;flex:none}.top b{font-size:20px;font-weight:800;letter-spacing:-.04em}
 .side{position:sticky;top:54px;height:calc(100dvh - 54px);overflow:hidden;display:flex;flex-direction:column;background:var(--panel);border-right:1px solid var(--line);padding:22px 10px;z-index:3}
 
@@ -208,6 +212,7 @@ body:has(.selbar:not([hidden])) .sendfab{bottom:90px}
 <dialog id="dlg"></dialog><dialog id="view"></dialog><dialog id="dev"></dialog><dialog id="pair"></dialog>
 <input type="file" id="spick" multiple hidden><input type="file" id="fpick" multiple hidden><input type="file" id="dpick" webkitdirectory hidden>
 <script>
+const isPhone=/Android/i.test(navigator.userAgent);
 (()=>{
 'use strict';
 const $=s=>document.querySelector(s);
@@ -310,9 +315,9 @@ function render(){
   const tools=$('#tools');
   put(tools,
     h('button',{class:'btn pri',onclick:()=>$('#fpick').click()},icon('upload'),'Add files'),
-    !matchMedia('(hover:none)').matches&&h('button',{class:'btn',onclick:()=>$('#dpick').click()},icon('folder'),'Add folder'),
-    h('button',{class:'btn',onclick:newFolder},icon('folderplus'),'New folder'),
-    h('button',{class:'btn',title:'Shared text',onclick:note},icon('note'),'Text'),
+    // on computers Drop only shares files; folders and notes are phone-only
+    isPhone&&h('button',{class:'btn',onclick:newFolder},icon('folderplus'),'New folder'),
+    isPhone&&h('button',{class:'btn',title:'Shared text',onclick:note},icon('note'),'Text'),
     h('button',{class:'btn',title:'Nearby devices and network',onclick:openDevices},icon('phone'),'Devices',h('span',{class:'cnt',id:'devcnt',hidden:!peers.length},String(peers.length))),
     h('button',{class:'btn',title:'Change sort order',onclick:()=>{sortBy=sortBy==='name'?'new':'name';LS.set('sort',sortBy);render()}},icon('sort'),sortBy==='name'?'Name':'Newest'),
     h('button',{class:'btn',title:'Switch view',onclick:()=>{view=view==='grid'?'list':'grid';LS.set('view',view);render()}},icon(view==='grid'?'list':'grid')));
@@ -799,7 +804,7 @@ setInterval(()=>{if(R&&!document.hidden&&!dragDepth)rload()},2500);
 
 /* ---------- keep-alive: lets Drop end itself when this page is closed ---------- */
 if(typeof window.dropNative==='function'){
- document.body.classList.add('native');document.getElementById('wc').hidden=false;
+ document.body.classList.add('native');document.documentElement.classList.add('native-win');document.getElementById('wc').hidden=false;
  let maxed=false;const wmax=document.getElementById('wmax');
  const paint=()=>{wmax.title=maxed?'Restore':'Maximise';wmax.firstElementChild.innerHTML=maxed?'<path d="M2.5 2.5V.5h7v7h-2M.5 2.5h7v7h-7z" stroke="currentColor" fill="none"/>':'<rect x=".5" y=".5" width="9" height="9" stroke="currentColor" fill="none"/>'};
  const act=a=>dropWin(a).then(m=>{maxed=!!m;paint()}).catch(()=>{});

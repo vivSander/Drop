@@ -28,6 +28,11 @@ var (
 	pForeground       = user32.NewProc("SetForegroundWindow")
 	pIsIconic         = user32.NewProc("IsIconic")
 	pSystemDPI        = user32.NewProc("GetDpiForSystem")
+	pSetWindowRgn     = user32.NewProc("SetWindowRgn")
+	gdi32             = windows.NewLazySystemDLL("gdi32.dll")
+	pRoundRgn         = gdi32.NewProc("CreateRoundRectRgn")
+	dwmapi            = windows.NewLazySystemDLL("dwmapi.dll")
+	pDwmAttr          = dwmapi.NewProc("DwmSetWindowAttribute")
 )
 
 type rect struct{ Left, Top, Right, Bottom int32 }
@@ -106,6 +111,7 @@ func (a *App) nativeWindow(url string) bool {
 
 	var maxed bool
 	var restore rect
+	var round func()
 	getRect := func() rect {
 		var r rect
 		pGetWindowRect.Call(hwnd, uintptr(unsafe.Pointer(&r)))
@@ -113,6 +119,29 @@ func (a *App) nativeWindow(url string) bool {
 	}
 	setRect := func(r rect) {
 		pSetWindowPos.Call(hwnd, 0, uintptr(r.Left), uintptr(r.Top), uintptr(r.Right-r.Left), uintptr(r.Bottom-r.Top), swpNoZOrder|swpNoActivate)
+		round()
+	}
+	// rounded corners: Windows 11 does it itself; on Windows 10 clip the window to a rounded shape
+	pref := uint32(2) // DWMWCP_ROUND
+	hr, _, _ := pDwmAttr.Call(hwnd, 33, uintptr(unsafe.Pointer(&pref)), 4)
+	win11 := hr == 0
+	round = func() {
+		if win11 {
+			p := uint32(2)
+			if maxed {
+				p = 1 // DWMWCP_DONOTROUND
+			}
+			pDwmAttr.Call(hwnd, 33, uintptr(unsafe.Pointer(&p)), 4)
+			return
+		}
+		if maxed {
+			pSetWindowRgn.Call(hwnd, 0, 1)
+			return
+		}
+		r := getRect()
+		d := uintptr(16 * scale)
+		rgn, _, _ := pRoundRgn.Call(0, 0, uintptr(r.Right-r.Left+1), uintptr(r.Bottom-r.Top+1), d, d)
+		pSetWindowRgn.Call(hwnd, rgn, 1)
 	}
 	minW, minH := int32(720*scale), int32(480*scale)
 
@@ -123,15 +152,15 @@ func (a *App) nativeWindow(url string) bool {
 			pShowWindow.Call(hwnd, swMinimize)
 		case "max":
 			if maxed {
-				setRect(restore)
 				maxed = false
+				setRect(restore)
 			} else {
 				restore = getRect()
 				mon, _, _ := pMonitorFromWin.Call(hwnd, 2) // nearest monitor
 				mi := monitorInfo{Size: uint32(unsafe.Sizeof(monitorInfo{}))}
 				if r, _, _ := pGetMonitorInfo.Call(mon, uintptr(unsafe.Pointer(&mi))); r != 0 {
-					setRect(mi.Work)
 					maxed = true
+					setRect(mi.Work)
 				}
 			}
 		case "close":
@@ -163,6 +192,7 @@ func (a *App) nativeWindow(url string) bool {
 			pForeground.Call(hwnd)
 		})
 	}
+	round()
 	w.SetTitle("Drop")
 	w.Navigate(url)
 	w.Run()
